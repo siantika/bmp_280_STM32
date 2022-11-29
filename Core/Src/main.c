@@ -105,12 +105,14 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  TrimRead();
-  HAL_Delay(500);
-  int status_bmp =  BMP280_config(OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
-  int status_raw = BMPReadRaw();
-  printf("Status bmp is : %d \r \n ", status_bmp);
-  printf("Status raw is : %d \r \n ", status_raw);
+//  TrimRead();
+//  HAL_Delay(500);
+//  int status_bmp =  BMP280_config(OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
+//  int status_raw = BMPReadRaw();
+//  printf("Status bmp is : %d \r \n ", status_bmp);
+//  printf("Status raw is : %d \r \n ", status_raw);
+
+  wakeup_BMP280();
 
   while (1)
   {
@@ -230,6 +232,18 @@ int BMPReadRaw(void)
 	else return -1;
 }
 
+void wakeup_BMP280(void)
+{
+	// read the control register
+	uint8_t data_to_write;
+	HAL_I2C_Mem_Read(BMP280_I2C, BMP280_ADDRESS, CTRL_MEAS_REG, 1, &data_to_write, 1, 1000);
+
+	data_to_write |= MODE_FORCED;
+
+	HAL_I2C_Mem_Write(BMP280_I2C, BMP280_ADDRESS, CTRL_MEAS_REG, 1, &data_to_write, 1, 1000);
+	HAL_Delay(100);
+
+}
 
 
 
