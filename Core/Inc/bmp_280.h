@@ -2,7 +2,7 @@
 #define BMP_280_H
 
 
-int BME280_Config (uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter);
+int BMP280_config (uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter);
 
 
 // Read the Trimming parameters saved in the NVM ROM of the device
