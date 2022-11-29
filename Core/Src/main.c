@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stdio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -31,6 +32,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define BMP280_I2C &hi2c1
+#define BMP280_ADDRESS 0xEC
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -42,6 +45,11 @@
 I2C_HandleTypeDef hi2c1;
 
 /* USER CODE BEGIN PV */
+uint16_t dig_T1,  \
+         dig_P1;
+
+int16_t  dig_T2, dig_T3, \
+         dig_P2, dig_P3, dig_P4, dig_P5, dig_P6, dig_P7, dig_P8, dig_P9;
 
 /* USER CODE END PV */
 
@@ -93,14 +101,58 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  TrimRead();
+
   while (1)
   {
     /* USER CODE END WHILE */
+
+	  HAL_Delay(500);
 
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
+
+
+
+
+// USER functions
+void TrimRead()
+{
+	uint8_t trimdata[25];
+	// Read NVM from 0x88 to 0xA1
+	HAL_I2C_Mem_Read(BMP280_I2C, BMP280_ADDRESS, 0x88, 1, trimdata, 25, HAL_MAX_DELAY);
+
+
+	// Arrange the data as per the datasheet (page no. 21)
+	dig_T1 = (trimdata[1]<<8) | trimdata[0];
+	dig_T2 = (trimdata[3]<<8) | trimdata[2];
+	dig_T3 = (trimdata[5]<<8) | trimdata[4];
+	dig_P1 = (trimdata[7]<<8) | trimdata[5];
+	dig_P2 = (trimdata[9]<<8) | trimdata[6];
+	dig_P3 = (trimdata[11]<<8) | trimdata[10];
+	dig_P4 = (trimdata[13]<<8) | trimdata[12];
+	dig_P5 = (trimdata[15]<<8) | trimdata[14];
+	dig_P6 = (trimdata[17]<<8) | trimdata[16];
+	dig_P7 = (trimdata[19]<<8) | trimdata[18];
+	dig_P8 = (trimdata[21]<<8) | trimdata[20];
+	dig_P9 = (trimdata[23]<<8) | trimdata[22];
+
+	printf("%s ",trimdata); // DEBUG ONLY
+
+}
+
+
+
+
+
+
+
+
+
+
+
 
 /**
   * @brief System Clock Configuration
