@@ -51,6 +51,10 @@ uint16_t dig_T1,  \
 int16_t  dig_T2, dig_T3, \
          dig_P2, dig_P3, dig_P4, dig_P5, dig_P6, dig_P7, dig_P8, dig_P9;
 
+uint8_t chip_id;
+
+int32_t pRaw, tRaw;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,7 +108,9 @@ int main(void)
   TrimRead();
   HAL_Delay(500);
   int status_bmp =  BMP280_config(OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
-  printf("Status is : %d \r \n ", status_bmp);
+  int status_raw = BMPReadRaw();
+  printf("Status bmp is : %d \r \n ", status_bmp);
+  printf("Status raw is : %d \r \n ", status_raw);
 
   while (1)
   {
@@ -200,7 +206,29 @@ int BMP280_config (uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode,
 }
 
 
+int BMPReadRaw(void)
+{
+	uint8_t RawData[6];
 
+	// Check the chip ID before reading
+	HAL_I2C_Mem_Read(BMP280_I2C, BMP280_ADDRESS, ID_REG, 1, &chip_id, 1, 1000);
+
+	if (chip_id == 0x58)
+	{
+		// Read the Registers 0xF7 to 0xFE
+		HAL_I2C_Mem_Read(BMP280_I2C, BMP280_ADDRESS, PRESS_MSB_REG, 1, RawData, 6, HAL_MAX_DELAY);
+
+		/* Calculate the Raw data for the parameters
+		 * Here the Pressure and Temperature are in 20 bit format and humidity in 16 bit format
+		 */
+		pRaw = (RawData[0]<<12)|(RawData[1]<<4)|(RawData[2]>>4);
+		tRaw = (RawData[3]<<12)|(RawData[4]<<4)|(RawData[5]>>4);
+
+		return 0;
+	}
+
+	else return -1;
+}
 
 
 

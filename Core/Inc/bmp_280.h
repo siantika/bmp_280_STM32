@@ -18,6 +18,8 @@ void BME280_WakeUP(void);
  */
 void BME280_Measure (void);
 
+int BMPReadRaw(void);
+
 
 // Oversampling definitions
 #define OSRS_OFF    	0x00
