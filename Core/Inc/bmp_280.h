@@ -1,6 +1,8 @@
 #ifndef BMP_280_H
 #define BMP_280_H
 
+typedef  int32_t BMP280_S32_t;
+typedef  uint32_t BMP280_U32_t;
 
 int BMP280_config (uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter);
 
@@ -11,14 +13,16 @@ void TrimRead(void);
 /* To be used when doing the force measurement
  * the Device need to be put in forced mode every time the measurement is needed
  */
-void BME280_WakeUP(void);
+void wakeup_BMP280(void);
 
 /* measure the temp, pressure and humidity
  * the values will be stored in the parameters passed to the function
  */
-void BME280_Measure (void);
+void BMP280_Measure (void);
 
 int BMPReadRaw(void);
+
+BMP280_S32_t bmp280_compensate_T_int32 (BMP280_S32_t adc_T);
 
 
 // Oversampling definitions

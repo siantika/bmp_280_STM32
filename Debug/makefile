@@ -61,7 +61,7 @@ main-build: bmp_280.elf secondary-outputs
 
 # Tool invocations
 bmp_280.elf bmp_280.map: $(OBJS) $(USER_OBJS) D:\STM32\bmp_280\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "bmp_280.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"D:\STM32\bmp_280\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="bmp_280.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "bmp_280.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"D:\STM32\bmp_280\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="bmp_280.map" -Wl,--gc-sections -static -u _printf_float; --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

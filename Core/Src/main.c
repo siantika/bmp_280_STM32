@@ -44,6 +44,9 @@
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
 
+typedef  int32_t BMP280_S32_t;
+typedef  uint32_t BMP280_U32_t;
+
 /* USER CODE BEGIN PV */
 uint16_t dig_T1,  \
          dig_P1;
@@ -52,8 +55,9 @@ int16_t  dig_T2, dig_T3, \
          dig_P2, dig_P3, dig_P4, dig_P5, dig_P6, dig_P7, dig_P8, dig_P9;
 
 uint8_t chip_id;
-
 int32_t pRaw, tRaw;
+
+float Temperature, Pressure;
 
 /* USER CODE END PV */
 
@@ -105,18 +109,21 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//  TrimRead();
-//  HAL_Delay(500);
-//  int status_bmp =  BMP280_config(OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
-//  int status_raw = BMPReadRaw();
-//  printf("Status bmp is : %d \r \n ", status_bmp);
-//  printf("Status raw is : %d \r \n ", status_raw);
-
-  wakeup_BMP280();
+  TrimRead();
+  HAL_Delay(500);
+  int status_bmp =  BMP280_config(OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
+  int status_raw = BMPReadRaw();
+  printf("Status bmp is : %d \r \n ", status_bmp);
+  printf("Status raw is : %d \r \n ", status_raw);
 
   while (1)
   {
     /* USER CODE END WHILE */
+	  BMP280_Measure();
+	  printf(" Temperatur adalah %f \n", Temperature);
+	  printf(" Tekanan adalah %f \n", Pressure);
+
+
 
 	  HAL_Delay(500);
 
@@ -246,7 +253,76 @@ void wakeup_BMP280(void)
 }
 
 
+// Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.
+// t_fine carries fine temperature as global value
+BMP280_S32_t t_fine;
+BMP280_S32_t bmp280_compensate_T_int32(BMP280_S32_t adc_T)
+{
+	BMP280_S32_t var1, var2, T;
 
+	var1 = ((((adc_T>>3) - ((BMP280_S32_t)dig_T1<<1))) * ((BMP280_S32_t)dig_T2)) >> 11;
+	var2 = (((((adc_T>>4) - ((BMP280_S32_t)dig_T1)) * ((adc_T>>4) - ((BMP280_S32_t)dig_T1))) >> 12) * ((BMP280_S32_t)dig_T3)) >> 14;
+	t_fine = var1 + var2;
+	T = (t_fine * 5 + 128) >> 8;
+	return T;
+}
+
+// Returns pressure in Pa as unsigned 32 bit integer. Output value of “96386” equals 96386 Pa = 963.86 hPa
+BMP280_U32_t bmp280_compensate_P_int32(BMP280_S32_t adc_P)
+{
+	BMP280_S32_t var1, var2;
+	BMP280_U32_t p;
+	var1 = (((BMP280_S32_t)t_fine)>>1) - (BMP280_S32_t)64000;
+	var2 = (((var1>>2) * (var1>>2)) >> 11 ) * ((BMP280_S32_t)dig_P6);
+	var2 = var2 + ((var1*((BMP280_S32_t)dig_P5))<<1);
+	var2 = (var2>>2)+(((BMP280_S32_t)dig_P4)<<16);
+	var1 = (((dig_P3 * (((var1>>2) * (var1>>2)) >> 13 )) >> 3) + ((((BMP280_S32_t)dig_P2) * var1)>>1))>>18;
+	var1 =((((32768+var1))*((BMP280_S32_t)dig_P1))>>15);
+	if (var1 == 0)
+	{
+		return 0; // avoid exception caused by division by zero
+	}
+	p = (((BMP280_U32_t)(((BMP280_S32_t)1048576)-adc_P)-(var2>>12)))*3125;
+	if (p < 0x80000000)
+	{
+		p = (p << 1) / ((BMP280_U32_t)var1);
+	}
+	else
+	{
+		p = (p / (BMP280_U32_t)var1) * 2;
+	}
+	var1 = (((BMP280_S32_t)dig_P9) * ((BMP280_S32_t)(((p>>3) * (p>>3))>>13)))>>12;
+	var2 = (((BMP280_S32_t)(p>>2)) * ((BMP280_S32_t)dig_P8))>>13;
+	p = (BMP280_U32_t)((BMP280_S32_t)p + ((var1 + var2 + dig_P7) >> 4));
+	return p;
+}
+
+void BMP280_Measure (void)
+{
+	if (BMPReadRaw() == 0)
+	{
+		if (tRaw == 0x800000) Temperature = 0; // value in case temp measurement was disabled
+		else
+		{
+			Temperature = (bmp280_compensate_T_int32 (tRaw))/100.0;  // as per datasheet, the temp is x100
+		}
+
+		if (pRaw == 0x800000) Pressure = 0; // value in case temp measurement was disabled
+		else
+		{
+
+			Pressure = (bmp280_compensate_P_int32 (pRaw));  // as per datasheet, the pressure is Pa
+
+		}
+	}
+
+	// if the device is detached
+	else
+	{
+		Temperature = Pressure = 0;
+	}
+
+}
 
 
 
