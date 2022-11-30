@@ -43,6 +43,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
+BMP280_TypeDef bmp280_attributes;
 
 typedef  int32_t BMP280_S32_t;
 typedef  uint32_t BMP280_U32_t;
@@ -109,23 +110,18 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  TrimRead();
+  BMP280_init(&bmp280_attributes, &hi2c1, BMP280_ADDRESS);
+  _trimRead(&bmp280_attributes);
+//  TrimRead();
   HAL_Delay(500);
-  int status_bmp =  BMP280_config(OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
-  int status_raw = BMPReadRaw();
-  printf("Status bmp is : %d \r \n ", status_bmp);
-  printf("Status raw is : %d \r \n ", status_raw);
+//  int status_bmp =  BMP280_config(OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
+//  int status_raw = BMPReadRaw();
+
 
   while (1)
   {
     /* USER CODE END WHILE */
-	  BMP280_Measure();
-	  printf(" Temperatur adalah %f \n", Temperature);
-	  printf(" Tekanan adalah %f \n", Pressure);
 
-
-
-	  HAL_Delay(500);
 
     /* USER CODE BEGIN 3 */
   }
@@ -135,31 +131,7 @@ int main(void)
 
 
 
-// USER functions
-void TrimRead()
-{
-	uint8_t trimdata[25];
-	// Read NVM from 0x88 to 0xA1
-	HAL_I2C_Mem_Read(BMP280_I2C, BMP280_ADDRESS, 0x88, 1, trimdata, 25, HAL_MAX_DELAY);
 
-
-	// Arrange the data as per the datasheet (page no. 21)
-	dig_T1 = (trimdata[1]<<8) | trimdata[0];
-	dig_T2 = (trimdata[3]<<8) | trimdata[2];
-	dig_T3 = (trimdata[5]<<8) | trimdata[4];
-	dig_P1 = (trimdata[7]<<8) | trimdata[5];
-	dig_P2 = (trimdata[9]<<8) | trimdata[6];
-	dig_P3 = (trimdata[11]<<8) | trimdata[10];
-	dig_P4 = (trimdata[13]<<8) | trimdata[12];
-	dig_P5 = (trimdata[15]<<8) | trimdata[14];
-	dig_P6 = (trimdata[17]<<8) | trimdata[16];
-	dig_P7 = (trimdata[19]<<8) | trimdata[18];
-	dig_P8 = (trimdata[21]<<8) | trimdata[20];
-	dig_P9 = (trimdata[23]<<8) | trimdata[22];
-
-	printf("%s ",trimdata); // DEBUG ONLY
-
-}
 
 int BMP280_config (uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter)
 {

@@ -1,0 +1,2 @@
+../Core/Src/bmp_280.c:3:6:BMP280_init	24	static
+../Core/Src/bmp_280.c:9:6:_trimRead	64	static

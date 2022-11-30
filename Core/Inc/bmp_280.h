@@ -1,14 +1,40 @@
 #ifndef BMP_280_H
 #define BMP_280_H
 
+#include <stm32f1xx.h>
+
 typedef  int32_t BMP280_S32_t;
 typedef  uint32_t BMP280_U32_t;
+
+
+
+typedef struct
+{
+	uint8_t dev_address;
+	I2C_HandleTypeDef * hi2c;
+
+	// variables store NVM data from sensors (datasheet)
+	uint16_t dig_T1, dig_P1;
+	int16_t  dig_T2, dig_T3, dig_P2, dig_P3, dig_P4, dig_P5, dig_P6, dig_P7, dig_P8, dig_P9;
+
+} BMP280_TypeDef;
+
+
+void BMP280_init(BMP280_TypeDef * const me, I2C_HandleTypeDef * hi2c, uint8_t device_address);
+
+void _trimRead(BMP280_TypeDef * const me);
+
+
+
+
+
+
 
 int BMP280_config (uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter);
 
 
 // Read the Trimming parameters saved in the NVM ROM of the device
-void TrimRead(void);
+
 
 /* To be used when doing the force measurement
  * the Device need to be put in forced mode every time the measurement is needed
