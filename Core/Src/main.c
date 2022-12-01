@@ -104,17 +104,18 @@ int main(void)
   BMP280_init(&bmp280_attributes, &hi2c1, BMP280_ADDRESS);
   HAL_Delay(500);
   //BMP280_wakeUp(&bmp280_attributes);
-
-
-
- // BMP280_config(&bmp280_attributes, OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
+  BMP280_config(&bmp280_attributes, OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
 //  int status_raw = BMPReadRaw();
 
 
   while (1)
   {
     /* USER CODE END WHILE */
+	  BMP280_measure(&bmp280_attributes);
+//	  printf("Temperature: %.4f Celcius. \n", bmp280_attributes.temperature);
+//	  printf("Pressure: %f Pa. \n", bmp280_attributes.pressure);
 
+	 // HAL_Delay(500);
 
     /* USER CODE BEGIN 3 */
   }

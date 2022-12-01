@@ -6,8 +6,7 @@
 typedef  int32_t BMP280_S32_t;
 typedef  uint32_t BMP280_U32_t;
 
-// global variables
-extern BMP280_S32_t t_fine;
+
 
 
 
@@ -32,8 +31,8 @@ typedef struct
 // Private methods
 static void _trimRead(BMP280_TypeDef * const me);
 static int _BMP280_readRaw(BMP280_TypeDef * const me);
-BMP280_S32_t _BMP280_compensate_T_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_T);
-BMP280_U32_t _BMP280_compensate_P_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_P);
+static BMP280_S32_t _BMP280_compensate_T_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_T);
+static BMP280_U32_t _BMP280_compensate_P_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_P);
 
 // Public methods
 void BMP280_init(BMP280_TypeDef * const me, I2C_HandleTypeDef * hi2c, uint8_t device_address);

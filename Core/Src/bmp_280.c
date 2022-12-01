@@ -1,5 +1,9 @@
 #include "bmp_280.h"
 
+
+// global variables
+BMP280_S32_t t_fine;
+
 void BMP280_init(BMP280_TypeDef * const me, I2C_HandleTypeDef * hi2c, uint8_t device_address)
 {
 	me->hi2c = hi2c;
@@ -120,7 +124,7 @@ void BMP280_wakeUp(BMP280_TypeDef * const me)
 }
 
 
-BMP280_S32_t _BMP280_compensate_T_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_T)
+static BMP280_S32_t _BMP280_compensate_T_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_T)
 {
 	BMP280_S32_t _var1, _var2, _T;
 
@@ -132,11 +136,11 @@ BMP280_S32_t _BMP280_compensate_T_int32(BMP280_TypeDef * const me, BMP280_S32_t 
 
 }
 
-BMP280_U32_t _BMP280_compensate_P_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_P)
+static BMP280_U32_t _BMP280_compensate_P_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_P)
 {
 	BMP280_S32_t _var1, _var2;
 	BMP280_U32_t _P;
-	_var1 = (((BMP280_S32_t)t_fine)>>1) - (BMP280_S32_t)64000;
+	_var1 = ((t_fine)>>1) - (BMP280_S32_t)64000;
 	_var2 = (((_var1>>2) * (_var1>>2)) >> 11 ) * ((BMP280_S32_t)me->dig_P6);
 	_var2 = _var2 + ((_var1*((BMP280_S32_t)me->dig_P5))<<1);
 	_var2 = (_var2>>2)+(((BMP280_S32_t)me->dig_P4)<<16);

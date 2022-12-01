@@ -1,8 +1,8 @@
-../Core/Src/bmp_280.c:3:6:BMP280_init	24	static
-../Core/Src/bmp_280.c:9:13:_trimRead	64	static
-../Core/Src/bmp_280.c:32:12:_BMP280_readRaw	40	static
-../Core/Src/bmp_280.c:60:5:BMP280_config	40	static
-../Core/Src/bmp_280.c:111:6:BMP280_wakeUp	40	static
-../Core/Src/bmp_280.c:123:14:_BMP280_compensate_T_int32	32	static
-../Core/Src/bmp_280.c:135:14:_BMP280_compensate_P_int32	32	static
-../Core/Src/bmp_280.c:165:6:BMP280_measure	16	static
+../Core/Src/bmp_280.c:7:6:BMP280_init	24	static
+../Core/Src/bmp_280.c:13:13:_trimRead	64	static
+../Core/Src/bmp_280.c:36:12:_BMP280_readRaw	40	static
+../Core/Src/bmp_280.c:64:5:BMP280_config	40	static
+../Core/Src/bmp_280.c:115:6:BMP280_wakeUp	40	static
+../Core/Src/bmp_280.c:127:21:_BMP280_compensate_T_int32	32	static
+../Core/Src/bmp_280.c:139:21:_BMP280_compensate_P_int32	32	static
+../Core/Src/bmp_280.c:169:6:BMP280_measure	16	static
