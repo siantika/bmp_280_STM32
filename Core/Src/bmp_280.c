@@ -194,4 +194,14 @@ void BMP280_measure (BMP280_TypeDef * const me)
 }
 
 
+float BMP280_getTemperature_Celc(BMP280_TypeDef * const me)
+{
+	return me->temperature;
+}
+
+float BMP280_getPressure_Pa(BMP280_TypeDef * const me)
+{
+	return me->pressure;
+}
+
 

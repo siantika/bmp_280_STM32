@@ -6,3 +6,5 @@
 ../Core/Src/bmp_280.c:127:21:_BMP280_compensate_T_int32	32	static
 ../Core/Src/bmp_280.c:139:21:_BMP280_compensate_P_int32	32	static
 ../Core/Src/bmp_280.c:169:6:BMP280_measure	16	static
+../Core/Src/bmp_280.c:197:7:BMP280_getTemperature_Celc	16	static
+../Core/Src/bmp_280.c:202:7:BMP280_getPressure_Pa	16	static
