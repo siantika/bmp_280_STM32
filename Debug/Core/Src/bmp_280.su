@@ -3,3 +3,6 @@
 ../Core/Src/bmp_280.c:32:12:_BMP280_readRaw	40	static
 ../Core/Src/bmp_280.c:60:5:BMP280_config	40	static
 ../Core/Src/bmp_280.c:111:6:BMP280_wakeUp	40	static
+../Core/Src/bmp_280.c:123:14:_BMP280_compensate_T_int32	32	static
+../Core/Src/bmp_280.c:135:14:_BMP280_compensate_P_int32	32	static
+../Core/Src/bmp_280.c:165:6:BMP280_measure	16	static

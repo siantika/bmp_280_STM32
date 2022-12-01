@@ -6,6 +6,9 @@
 typedef  int32_t BMP280_S32_t;
 typedef  uint32_t BMP280_U32_t;
 
+// global variables
+extern BMP280_S32_t t_fine;
+
 
 
 typedef struct
@@ -21,18 +24,22 @@ typedef struct
 	uint8_t chip_id;
 	int32_t pRaw, tRaw;
 
+	float temperature, pressure;
+
 } BMP280_TypeDef;
 
 
 // Private methods
 static void _trimRead(BMP280_TypeDef * const me);
 static int _BMP280_readRaw(BMP280_TypeDef * const me);
+BMP280_S32_t _BMP280_compensate_T_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_T);
+BMP280_U32_t _BMP280_compensate_P_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_P);
 
 // Public methods
 void BMP280_init(BMP280_TypeDef * const me, I2C_HandleTypeDef * hi2c, uint8_t device_address);
 int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter);
 void BMP280_wakeUp(BMP280_TypeDef * const me);
-
+void BMP280_measure (BMP280_TypeDef * const me);
 
 
 
@@ -47,11 +54,6 @@ void BMP280_wakeUp(BMP280_TypeDef * const me);
 /* measure the temp, pressure and humidity
  * the values will be stored in the parameters passed to the function
  */
-void BMP280_Measure (void);
-
-int BMPReadRaw(void);
-
-BMP280_S32_t bmp280_compensate_T_int32 (BMP280_S32_t adc_T);
 
 
 // Oversampling definitions
