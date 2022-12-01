@@ -55,7 +55,7 @@ uint16_t dig_T1,  \
 int16_t  dig_T2, dig_T3, \
          dig_P2, dig_P3, dig_P4, dig_P5, dig_P6, dig_P7, dig_P8, dig_P9;
 
-uint8_t chip_id;
+
 int32_t pRaw, tRaw;
 
 float Temperature, Pressure;
@@ -112,7 +112,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   BMP280_init(&bmp280_attributes, &hi2c1, BMP280_ADDRESS);
   HAL_Delay(500);
-  BMP280_wakeUp(&bmp280_attributes);
+  //BMP280_wakeUp(&bmp280_attributes);
+
+
 
   //BMP280_config(&bmp280_attributes, OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
 //  int status_raw = BMPReadRaw();
@@ -130,30 +132,6 @@ int main(void)
 
 
 
-
-int BMPReadRaw(void)
-{
-	uint8_t RawData[6];
-
-	// Check the chip ID before reading
-	HAL_I2C_Mem_Read(BMP280_I2C, BMP280_ADDRESS, ID_REG, 1, &chip_id, 1, 1000);
-
-	if (chip_id == 0x58)
-	{
-		// Read the Registers 0xF7 to 0xFE
-		HAL_I2C_Mem_Read(BMP280_I2C, BMP280_ADDRESS, PRESS_MSB_REG, 1, RawData, 6, HAL_MAX_DELAY);
-
-		/* Calculate the Raw data for the parameters
-		 * Here the Pressure and Temperature are in 20 bit format and humidity in 16 bit format
-		 */
-		pRaw = (RawData[0]<<12)|(RawData[1]<<4)|(RawData[2]>>4);
-		tRaw = (RawData[3]<<12)|(RawData[4]<<4)|(RawData[5]>>4);
-
-		return 0;
-	}
-
-	else return -1;
-}
 
 
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.

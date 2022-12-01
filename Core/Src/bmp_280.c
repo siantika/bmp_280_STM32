@@ -29,6 +29,34 @@ static void _trimRead(BMP280_TypeDef * const me)
 }
 
 
+static int _BMP280_readRaw(BMP280_TypeDef * const me)
+{
+	uint8_t _raw_data[6];
+
+	// Check the chip ID before reading
+	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, ID_REG, 1, &me->chip_id, 1, 1000);
+
+	if (me->chip_id == 0x58)
+	{
+		// Read the Registers 0xF7 to 0xFE
+		HAL_I2C_Mem_Read(me->hi2c, me->dev_address, PRESS_MSB_REG, 1, _raw_data, 6, HAL_MAX_DELAY);
+
+		/* Calculate the Raw data for the parameters
+		 * Here the Pressure and Temperature are in 20 bit format and humidity in 16 bit format
+		 */
+		me->pRaw = (_raw_data[0]<<12)|(_raw_data[1]<<4)|(_raw_data[2]>>4);
+		me->tRaw = (_raw_data[3]<<12)|(_raw_data[4]<<4)|(_raw_data[5]>>4);
+
+		return 0;
+	}
+
+	else return -1;
+}
+
+
+
+
+
 int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter)
 {
 	uint8_t _data_to_write = 0;

@@ -18,11 +18,15 @@ typedef struct
 	int16_t  dig_T2, dig_T3, dig_P2, dig_P3, dig_P4, dig_P5, dig_P6, dig_P7, dig_P8, dig_P9;
 	uint8_t osrs_t, osrs_p, osrs_h,  mode,  t_sb,  filter;
 
+	uint8_t chip_id;
+	int32_t pRaw, tRaw;
+
 } BMP280_TypeDef;
 
 
 // Private methods
 static void _trimRead(BMP280_TypeDef * const me);
+static int _BMP280_readRaw(BMP280_TypeDef * const me);
 
 // Public methods
 void BMP280_init(BMP280_TypeDef * const me, I2C_HandleTypeDef * hi2c, uint8_t device_address);
