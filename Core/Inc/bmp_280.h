@@ -27,7 +27,7 @@ static void _trimRead(BMP280_TypeDef * const me);
 // Public methods
 void BMP280_init(BMP280_TypeDef * const me, I2C_HandleTypeDef * hi2c, uint8_t device_address);
 int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter);
-
+void BMP280_wakeUp(BMP280_TypeDef * const me);
 
 
 
@@ -38,7 +38,7 @@ int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uin
 /* To be used when doing the force measurement
  * the Device need to be put in forced mode every time the measurement is needed
  */
-void wakeup_BMP280(void);
+
 
 /* measure the temp, pressure and humidity
  * the values will be stored in the parameters passed to the function

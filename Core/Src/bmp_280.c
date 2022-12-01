@@ -67,7 +67,6 @@ int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uin
 	{
 		return -1;
 	}
-
 	HAL_Delay(100);
 
 	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_check , 1, 1000);
@@ -77,8 +76,20 @@ int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uin
 	}
 	HAL_Delay(100);
 
-
 	return 0;
 }
+
+
+void BMP280_wakeUp(BMP280_TypeDef * const me)
+{
+	uint8_t _data_to_write;
+	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_to_write, 1, 1000);
+
+	_data_to_write |= MODE_FORCED;
+
+	HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_to_write, 1, 1000);
+	HAL_Delay(100);
+}
+
 
 

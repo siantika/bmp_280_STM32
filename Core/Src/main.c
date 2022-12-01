@@ -112,8 +112,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   BMP280_init(&bmp280_attributes, &hi2c1, BMP280_ADDRESS);
   HAL_Delay(500);
+  BMP280_wakeUp(&bmp280_attributes);
 
-  BMP280_config(&bmp280_attributes, OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
+  //BMP280_config(&bmp280_attributes, OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
 //  int status_raw = BMPReadRaw();
 
 
@@ -152,19 +153,6 @@ int BMPReadRaw(void)
 	}
 
 	else return -1;
-}
-
-void wakeup_BMP280(void)
-{
-	// read the control register
-	uint8_t data_to_write;
-	HAL_I2C_Mem_Read(BMP280_I2C, BMP280_ADDRESS, CTRL_MEAS_REG, 1, &data_to_write, 1, 1000);
-
-	data_to_write |= MODE_FORCED;
-
-	HAL_I2C_Mem_Write(BMP280_I2C, BMP280_ADDRESS, CTRL_MEAS_REG, 1, &data_to_write, 1, 1000);
-	HAL_Delay(100);
-
 }
 
 
