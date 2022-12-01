@@ -6,7 +6,7 @@ void BMP280_init(BMP280_TypeDef * const me, I2C_HandleTypeDef * hi2c, uint8_t de
 	me->dev_address = device_address;
 }
 
-void _trimRead(BMP280_TypeDef * const me)
+static void _trimRead(BMP280_TypeDef * const me)
 {
 	uint8_t _trim_data[25];
 
@@ -26,6 +26,59 @@ void _trimRead(BMP280_TypeDef * const me)
 	me->dig_P7 = (_trim_data[19]<<8) | _trim_data[18];
 	me->dig_P8 = (_trim_data[21]<<8) | _trim_data[20];
 	me->dig_P9 = (_trim_data[23]<<8) | _trim_data[22];
+}
+
+
+int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter)
+{
+	uint8_t _data_to_write = 0;
+	uint8_t _data_check = 0;
+
+	_trimRead(me);
+
+	// reset the device
+	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, RESET_REG, 1, (uint8_t *) 0xB6, 1, 1000) != HAL_OK)
+	{
+		return -1;
+	}
+	HAL_Delay(100);
+
+	// set standby and filter IIR
+	_data_to_write = (t_sb << 5) | (filter << 2);
+
+	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CONFIG_REG, 1,&_data_to_write , 1, 1000) != HAL_OK)
+	{
+		return -1;
+	}
+	HAL_Delay(100);
+
+	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CONFIG_REG, 1,&_data_check , 1, 1000);
+	if (_data_check != _data_to_write)
+	{
+		return -1;
+	}
+	HAL_Delay(100);
+
+
+	// oversampling config for temp and pressure
+	_data_to_write = (osrs_t << 5) | (osrs_p << 2) | mode;
+
+	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_to_write, 1, 1000) != HAL_OK)
+	{
+		return -1;
+	}
+
+	HAL_Delay(100);
+
+	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_check , 1, 1000);
+	if (_data_check != _data_to_write)
+	{
+		return -1;
+	}
+	HAL_Delay(100);
+
+
+	return 0;
 }
 
 

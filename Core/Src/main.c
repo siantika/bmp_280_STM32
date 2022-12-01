@@ -111,10 +111,9 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   BMP280_init(&bmp280_attributes, &hi2c1, BMP280_ADDRESS);
-  _trimRead(&bmp280_attributes);
-//  TrimRead();
   HAL_Delay(500);
-//  int status_bmp =  BMP280_config(OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
+
+  BMP280_config(&bmp280_attributes, OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
 //  int status_raw = BMPReadRaw();
 
 
@@ -129,62 +128,6 @@ int main(void)
 }
 
 
-
-
-
-
-int BMP280_config (uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter)
-{
-	uint8_t data_to_write = 0;
-	uint8_t data_check = 0;
-
-
-
-	// reset the device
-	if ( HAL_I2C_Mem_Write(BMP280_I2C, BMP280_ADDRESS, RESET_REG, 1, (uint8_t *) 0xB6, 1, 1000) != HAL_OK)
-	{
-		return -1;
-	}
-	HAL_Delay(100);
-
-	// set standby and filter IIR
-	data_to_write = (t_sb << 5) | (filter << 2);
-
-	if ( HAL_I2C_Mem_Write(BMP280_I2C, BMP280_ADDRESS, CONFIG_REG, 1,&data_to_write , 1, 1000) != HAL_OK)
-	{
-		return -1;
-	}
-
-	HAL_Delay(100);
-
-	HAL_I2C_Mem_Read(BMP280_I2C, BMP280_ADDRESS, CONFIG_REG, 1,&data_check , 1, 1000);
-	if (data_check != data_to_write)
-	{
-		return -1;
-	}
-	HAL_Delay(100);
-
-
-	// oversampling config for temp and pressure
-	data_to_write = (osrs_t << 5) | (osrs_p << 2) | mode;
-
-	if (HAL_I2C_Mem_Write(BMP280_I2C, BMP280_ADDRESS, CTRL_MEAS_REG, 1, &data_to_write, 1, 1000) != HAL_OK)
-	{
-		return -1;
-	}
-
-	HAL_Delay(100);
-
-	HAL_I2C_Mem_Read(BMP280_I2C, BMP280_ADDRESS, CTRL_MEAS_REG, 1, &data_check , 1, 1000);
-	if (data_check != data_to_write)
-	{
-		return -1;
-	}
-	HAL_Delay(100);
-
-
-	return 0;
-}
 
 
 int BMPReadRaw(void)

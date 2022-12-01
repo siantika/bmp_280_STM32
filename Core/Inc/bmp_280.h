@@ -16,21 +16,20 @@ typedef struct
 	// variables store NVM data from sensors (datasheet)
 	uint16_t dig_T1, dig_P1;
 	int16_t  dig_T2, dig_T3, dig_P2, dig_P3, dig_P4, dig_P5, dig_P6, dig_P7, dig_P8, dig_P9;
+	uint8_t osrs_t, osrs_p, osrs_h,  mode,  t_sb,  filter;
 
 } BMP280_TypeDef;
 
 
+// Private methods
+static void _trimRead(BMP280_TypeDef * const me);
+
+// Public methods
 void BMP280_init(BMP280_TypeDef * const me, I2C_HandleTypeDef * hi2c, uint8_t device_address);
-
-void _trimRead(BMP280_TypeDef * const me);
-
+int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter);
 
 
 
-
-
-
-int BMP280_config (uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter);
 
 
 // Read the Trimming parameters saved in the NVM ROM of the device
