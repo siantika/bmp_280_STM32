@@ -6,9 +6,7 @@
 typedef  int32_t BMP280_S32_t;
 typedef  uint32_t BMP280_U32_t;
 
-
-
-
+extern BMP280_S32_t t_fine;
 
 typedef struct
 {
@@ -36,25 +34,12 @@ static BMP280_U32_t _BMP280_compensate_P_int32(BMP280_TypeDef * const me, BMP280
 
 // Public methods
 void BMP280_init(BMP280_TypeDef * const me, I2C_HandleTypeDef * hi2c, uint8_t device_address);
-int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter);
+int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uint8_t mode, uint8_t t_sb, uint8_t filter);
 void BMP280_wakeUp(BMP280_TypeDef * const me);
 void BMP280_measure (BMP280_TypeDef * const me);
 float BMP280_getTemperature_Celc(BMP280_TypeDef * const me);
 float BMP280_getPressure_Pa(BMP280_TypeDef * const me);
 
-
-
-// Read the Trimming parameters saved in the NVM ROM of the device
-
-
-/* To be used when doing the force measurement
- * the Device need to be put in forced mode every time the measurement is needed
- */
-
-
-/* measure the temp, pressure and humidity
- * the values will be stored in the parameters passed to the function
- */
 
 
 // Oversampling definitions

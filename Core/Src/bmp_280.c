@@ -1,15 +1,56 @@
+/**
+  ******************************************************************************
+  * @file    bmp_280.c
+  * @author  I Putu Pawesi Siantika, S.T. December, 2022.
+  * @brief   bmp_280 Bosch library.
+  *          This is a modification from https://controllerstech.com/bme280-with-stm32/ .
+  *          The modifications are: make it suitable for bmp280 device, make it OOP,
+  *          added "get temperature in celcius"-method,
+  *          and added "get pressure in pa" - method.
+  * @datasheet : https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp280-ds001.pdf
+  *
+  *
+
+  ==============================================================================
+                     ##### How to use this library #####
+  ==============================================================================
+    [..]
+    	Steps:
+    	* Pre-code:
+    		1. Include "bmp_280.c" file inside "Src" folder and "bmp_280.h" file inside "Inc" folder.
+    		2. Hardware: determining I2C address:
+    			*) SDIO pin is grounded        = 0x76
+    			*) SDIO pin is pull up to VCC  = 0x77;
+    	*code :
+    		1. In "main.c" file, declare BMP280_TypeDef bmp280_attributes.
+    		2. Invoke  a method " BMP280_init(&bmp280_attributes, &hi2c1, BMP280_ADDRESS)" once.
+    		3. BMP280_config(&bmp280_attributes, OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16) once.
+    			parameters determine over sampling feature, power mode, standby time, and IIR filter. please
+    			check data sheet and bmp_280.h file for custom setting .
+    		4. Invoke the measurement method "BMP280_measure(&bmp280_attributes)"
+    		5. The result (temperature and pressure) can be achieved by calling method float BMP280_getTemperature_Celc().
+float          BMP280_getPressure_Pa(). Temperature and Pressure are float type-data.
+    [..]
+
+  */
+
+
 #include "bmp_280.h"
 
 
 // global variables
 BMP280_S32_t t_fine;
 
+
+// constructor method
 void BMP280_init(BMP280_TypeDef * const me, I2C_HandleTypeDef * hi2c, uint8_t device_address)
 {
 	me->hi2c = hi2c;
 	me->dev_address = device_address;
 }
 
+
+// Private Methods
 static void _trimRead(BMP280_TypeDef * const me)
 {
 	uint8_t _trim_data[25];
@@ -17,7 +58,7 @@ static void _trimRead(BMP280_TypeDef * const me)
 	// Read NVM from 0x88 to 0xA1
 	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, 0x88, 1, _trim_data, 25, HAL_MAX_DELAY);
 
-	// Arrange the data as per the datasheet (page no. 21)
+	// Arrange the data as per the data sheet (page no. 21)
 	me->dig_T1 = (_trim_data[1]<<8) | _trim_data[0];
 	me->dig_T2 = (_trim_data[3]<<8) | _trim_data[2];
 	me->dig_T3 = (_trim_data[5]<<8) | _trim_data[4];
@@ -57,73 +98,9 @@ static int _BMP280_readRaw(BMP280_TypeDef * const me)
 	else return -1;
 }
 
-
-
-
-
-int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter)
-{
-	uint8_t _data_to_write = 0;
-	uint8_t _data_check = 0;
-
-	_trimRead(me);
-
-	// reset the device
-	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, RESET_REG, 1, (uint8_t *) 0xB6, 1, 1000) != HAL_OK)
-	{
-		return -1;
-	}
-	HAL_Delay(100);
-
-	// set standby and filter IIR
-	_data_to_write = (t_sb << 5) | (filter << 2);
-
-	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CONFIG_REG, 1,&_data_to_write , 1, 1000) != HAL_OK)
-	{
-		return -1;
-	}
-	HAL_Delay(100);
-
-	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CONFIG_REG, 1,&_data_check , 1, 1000);
-	if (_data_check != _data_to_write)
-	{
-		return -1;
-	}
-	HAL_Delay(100);
-
-
-	// oversampling config for temp and pressure
-	_data_to_write = (osrs_t << 5) | (osrs_p << 2) | mode;
-
-	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_to_write, 1, 1000) != HAL_OK)
-	{
-		return -1;
-	}
-	HAL_Delay(100);
-
-	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_check , 1, 1000);
-	if (_data_check != _data_to_write)
-	{
-		return -1;
-	}
-	HAL_Delay(100);
-
-	return 0;
-}
-
-
-void BMP280_wakeUp(BMP280_TypeDef * const me)
-{
-	uint8_t _data_to_write;
-	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_to_write, 1, 1000);
-
-	_data_to_write |= MODE_FORCED;
-
-	HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_to_write, 1, 1000);
-	HAL_Delay(100);
-}
-
-
+/*
+ * @note	: This code based on the data sheet page 44.
+ */
 static BMP280_S32_t _BMP280_compensate_T_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_T)
 {
 	BMP280_S32_t _var1, _var2, _T;
@@ -164,6 +141,79 @@ static BMP280_U32_t _BMP280_compensate_P_int32(BMP280_TypeDef * const me, BMP280
 	_P = (BMP280_U32_t)((BMP280_S32_t)_P + ((_var1 + _var2 + me->dig_P7) >> 4));
 	return _P;
 }
+
+/* End of code copied from data sheet */
+
+
+
+
+/* Public Methods */
+
+int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uint8_t mode, uint8_t t_sb, uint8_t filter)
+{
+	uint8_t _data_to_write = 0;
+	uint8_t _data_check = 0;
+
+	// read NVM device and store it to struct.
+	_trimRead(me);
+
+	// reset the device
+	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, RESET_REG, 1, (uint8_t *) 0xB6, 1, 1000) != HAL_OK)
+	{
+		return -1;
+	}
+	HAL_Delay(100);
+
+	// set standby and filter IIR
+	_data_to_write = (t_sb << 5) | (filter << 2);
+	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CONFIG_REG, 1,&_data_to_write , 1, 1000) != HAL_OK)
+	{
+		return -1;
+	}
+	HAL_Delay(100);
+
+	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CONFIG_REG, 1,&_data_check , 1, 1000);
+	if (_data_check != _data_to_write)
+	{
+		return -1;
+	}
+	HAL_Delay(100);
+
+
+	// over sampling configuration for temperature and pressure
+	_data_to_write = (osrs_t << 5) | (osrs_p << 2) | mode;
+	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_to_write, 1, 1000) != HAL_OK)
+	{
+		return -1;
+	}
+	HAL_Delay(100);
+
+	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_check , 1, 1000);
+	if (_data_check != _data_to_write)
+	{
+		return -1;
+	}
+	HAL_Delay(100);
+
+	return 0;
+}
+
+/*
+ * @note : it uses in FORCE MODE (read data once and put device to sleep).
+ * 			it needs to re-invoke after called to wake the sensor from sleep and capture the data.
+ */
+void BMP280_wakeUp(BMP280_TypeDef * const me)
+{
+	uint8_t _data_to_write;
+	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_to_write, 1, 1000);
+
+	_data_to_write |= MODE_FORCED;
+
+	HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_to_write, 1, 1000);
+	HAL_Delay(100);
+}
+
+
 
 
 void BMP280_measure (BMP280_TypeDef * const me)

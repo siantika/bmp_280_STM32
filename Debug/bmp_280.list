@@ -27,23 +27,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000029  00000000  00000000  0002043c  2**0
                   CONTENTS, READONLY
- 12 .debug_info   00006a94  00000000  00000000  00020465  2**0
+ 12 .debug_info   00006a88  00000000  00000000  00020465  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 000013be  00000000  00000000  00026ef9  2**0
+ 13 .debug_abbrev 000013cd  00000000  00000000  00026eed  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 000006f0  00000000  00000000  000282b8  2**3
+ 14 .debug_aranges 000006f0  00000000  00000000  000282c0  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_ranges 00000670  00000000  00000000  000289a8  2**3
+ 15 .debug_ranges 00000670  00000000  00000000  000289b0  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  00016c81  00000000  00000000  00029018  2**0
+ 16 .debug_macro  00016c81  00000000  00000000  00029020  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00008c0e  00000000  00000000  0003fc99  2**0
+ 17 .debug_line   00008c16  00000000  00000000  0003fca1  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000822c0  00000000  00000000  000488a7  2**0
+ 18 .debug_str    000822c0  00000000  00000000  000488b7  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000050  00000000  00000000  000cab67  2**0
+ 19 .comment      00000050  00000000  00000000  000cab77  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00001e90  00000000  00000000  000cabb8  2**2
+ 20 .debug_frame  00001e90  00000000  00000000  000cabc8  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -949,10 +949,10 @@ Disassembly of section .text:
  8000ba2:	4770      	bx	lr
 
 08000ba4 <BMP280_init>:
-
-// global variables
 BMP280_S32_t t_fine;
 
+
+// constructor method
 void BMP280_init(BMP280_TypeDef * const me, I2C_HandleTypeDef * hi2c, uint8_t device_address)
 {
  8000ba4:	b480      	push	{r7}
@@ -979,6 +979,8 @@ void BMP280_init(BMP280_TypeDef * const me, I2C_HandleTypeDef * hi2c, uint8_t de
 
 08000bc8 <_trimRead>:
 
+
+// Private Methods
 static void _trimRead(BMP280_TypeDef * const me)
 {
  8000bc8:	b580      	push	{r7, lr}
@@ -1004,7 +1006,7 @@ static void _trimRead(BMP280_TypeDef * const me)
  8000bec:	2288      	movs	r2, #136	; 0x88
  8000bee:	f001 f969 	bl	8001ec4 <HAL_I2C_Mem_Read>
 
-	// Arrange the data as per the datasheet (page no. 21)
+	// Arrange the data as per the data sheet (page no. 21)
 	me->dig_T1 = (_trim_data[1]<<8) | _trim_data[0];
  8000bf2:	7b7b      	ldrb	r3, [r7, #13]
  8000bf4:	021b      	lsls	r3, r3, #8
@@ -1226,658 +1228,658 @@ static int _BMP280_readRaw(BMP280_TypeDef * const me)
  8000d6c:	46bd      	mov	sp, r7
  8000d6e:	bd80      	pop	{r7, pc}
 
-08000d70 <BMP280_config>:
+08000d70 <_BMP280_compensate_T_int32>:
 
-
-
-
-int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter)
-{
- 8000d70:	b580      	push	{r7, lr}
- 8000d72:	b088      	sub	sp, #32
- 8000d74:	af04      	add	r7, sp, #16
- 8000d76:	6078      	str	r0, [r7, #4]
- 8000d78:	4608      	mov	r0, r1
- 8000d7a:	4611      	mov	r1, r2
- 8000d7c:	461a      	mov	r2, r3
- 8000d7e:	4603      	mov	r3, r0
- 8000d80:	70fb      	strb	r3, [r7, #3]
- 8000d82:	460b      	mov	r3, r1
- 8000d84:	70bb      	strb	r3, [r7, #2]
- 8000d86:	4613      	mov	r3, r2
- 8000d88:	707b      	strb	r3, [r7, #1]
-	uint8_t _data_to_write = 0;
- 8000d8a:	2300      	movs	r3, #0
- 8000d8c:	73fb      	strb	r3, [r7, #15]
-	uint8_t _data_check = 0;
- 8000d8e:	2300      	movs	r3, #0
- 8000d90:	73bb      	strb	r3, [r7, #14]
-
-	_trimRead(me);
- 8000d92:	6878      	ldr	r0, [r7, #4]
- 8000d94:	f7ff ff18 	bl	8000bc8 <_trimRead>
-
-	// reset the device
-	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, RESET_REG, 1, (uint8_t *) 0xB6, 1, 1000) != HAL_OK)
- 8000d98:	687b      	ldr	r3, [r7, #4]
- 8000d9a:	6858      	ldr	r0, [r3, #4]
- 8000d9c:	687b      	ldr	r3, [r7, #4]
- 8000d9e:	781b      	ldrb	r3, [r3, #0]
- 8000da0:	b299      	uxth	r1, r3
- 8000da2:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
- 8000da6:	9302      	str	r3, [sp, #8]
- 8000da8:	2301      	movs	r3, #1
- 8000daa:	9301      	str	r3, [sp, #4]
- 8000dac:	23b6      	movs	r3, #182	; 0xb6
- 8000dae:	9300      	str	r3, [sp, #0]
- 8000db0:	2301      	movs	r3, #1
- 8000db2:	22e0      	movs	r2, #224	; 0xe0
- 8000db4:	f000 ff8c 	bl	8001cd0 <HAL_I2C_Mem_Write>
- 8000db8:	4603      	mov	r3, r0
- 8000dba:	2b00      	cmp	r3, #0
- 8000dbc:	d002      	beq.n	8000dc4 <BMP280_config+0x54>
-	{
-		return -1;
- 8000dbe:	f04f 33ff 	mov.w	r3, #4294967295
- 8000dc2:	e086      	b.n	8000ed2 <BMP280_config+0x162>
-	}
-	HAL_Delay(100);
- 8000dc4:	2064      	movs	r0, #100	; 0x64
- 8000dc6:	f000 fbb3 	bl	8001530 <HAL_Delay>
-
-	// set standby and filter IIR
-	_data_to_write = (t_sb << 5) | (filter << 2);
- 8000dca:	7f3b      	ldrb	r3, [r7, #28]
- 8000dcc:	015b      	lsls	r3, r3, #5
- 8000dce:	b25a      	sxtb	r2, r3
- 8000dd0:	f897 3020 	ldrb.w	r3, [r7, #32]
- 8000dd4:	009b      	lsls	r3, r3, #2
- 8000dd6:	b25b      	sxtb	r3, r3
- 8000dd8:	4313      	orrs	r3, r2
- 8000dda:	b25b      	sxtb	r3, r3
- 8000ddc:	b2db      	uxtb	r3, r3
- 8000dde:	73fb      	strb	r3, [r7, #15]
-
-	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CONFIG_REG, 1,&_data_to_write , 1, 1000) != HAL_OK)
- 8000de0:	687b      	ldr	r3, [r7, #4]
- 8000de2:	6858      	ldr	r0, [r3, #4]
- 8000de4:	687b      	ldr	r3, [r7, #4]
- 8000de6:	781b      	ldrb	r3, [r3, #0]
- 8000de8:	b299      	uxth	r1, r3
- 8000dea:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
- 8000dee:	9302      	str	r3, [sp, #8]
- 8000df0:	2301      	movs	r3, #1
- 8000df2:	9301      	str	r3, [sp, #4]
- 8000df4:	f107 030f 	add.w	r3, r7, #15
- 8000df8:	9300      	str	r3, [sp, #0]
- 8000dfa:	2301      	movs	r3, #1
- 8000dfc:	22f5      	movs	r2, #245	; 0xf5
- 8000dfe:	f000 ff67 	bl	8001cd0 <HAL_I2C_Mem_Write>
- 8000e02:	4603      	mov	r3, r0
- 8000e04:	2b00      	cmp	r3, #0
- 8000e06:	d002      	beq.n	8000e0e <BMP280_config+0x9e>
-	{
-		return -1;
- 8000e08:	f04f 33ff 	mov.w	r3, #4294967295
- 8000e0c:	e061      	b.n	8000ed2 <BMP280_config+0x162>
-	}
-	HAL_Delay(100);
- 8000e0e:	2064      	movs	r0, #100	; 0x64
- 8000e10:	f000 fb8e 	bl	8001530 <HAL_Delay>
-
-	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CONFIG_REG, 1,&_data_check , 1, 1000);
- 8000e14:	687b      	ldr	r3, [r7, #4]
- 8000e16:	6858      	ldr	r0, [r3, #4]
- 8000e18:	687b      	ldr	r3, [r7, #4]
- 8000e1a:	781b      	ldrb	r3, [r3, #0]
- 8000e1c:	b299      	uxth	r1, r3
- 8000e1e:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
- 8000e22:	9302      	str	r3, [sp, #8]
- 8000e24:	2301      	movs	r3, #1
- 8000e26:	9301      	str	r3, [sp, #4]
- 8000e28:	f107 030e 	add.w	r3, r7, #14
- 8000e2c:	9300      	str	r3, [sp, #0]
- 8000e2e:	2301      	movs	r3, #1
- 8000e30:	22f5      	movs	r2, #245	; 0xf5
- 8000e32:	f001 f847 	bl	8001ec4 <HAL_I2C_Mem_Read>
-	if (_data_check != _data_to_write)
- 8000e36:	7bba      	ldrb	r2, [r7, #14]
- 8000e38:	7bfb      	ldrb	r3, [r7, #15]
- 8000e3a:	429a      	cmp	r2, r3
- 8000e3c:	d002      	beq.n	8000e44 <BMP280_config+0xd4>
-	{
-		return -1;
- 8000e3e:	f04f 33ff 	mov.w	r3, #4294967295
- 8000e42:	e046      	b.n	8000ed2 <BMP280_config+0x162>
-	}
-	HAL_Delay(100);
- 8000e44:	2064      	movs	r0, #100	; 0x64
- 8000e46:	f000 fb73 	bl	8001530 <HAL_Delay>
-
-
-	// oversampling config for temp and pressure
-	_data_to_write = (osrs_t << 5) | (osrs_p << 2) | mode;
- 8000e4a:	78fb      	ldrb	r3, [r7, #3]
- 8000e4c:	015b      	lsls	r3, r3, #5
- 8000e4e:	b25a      	sxtb	r2, r3
- 8000e50:	78bb      	ldrb	r3, [r7, #2]
- 8000e52:	009b      	lsls	r3, r3, #2
- 8000e54:	b25b      	sxtb	r3, r3
- 8000e56:	4313      	orrs	r3, r2
- 8000e58:	b25a      	sxtb	r2, r3
- 8000e5a:	f997 3018 	ldrsb.w	r3, [r7, #24]
- 8000e5e:	4313      	orrs	r3, r2
- 8000e60:	b25b      	sxtb	r3, r3
- 8000e62:	b2db      	uxtb	r3, r3
- 8000e64:	73fb      	strb	r3, [r7, #15]
-
-	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_to_write, 1, 1000) != HAL_OK)
- 8000e66:	687b      	ldr	r3, [r7, #4]
- 8000e68:	6858      	ldr	r0, [r3, #4]
- 8000e6a:	687b      	ldr	r3, [r7, #4]
- 8000e6c:	781b      	ldrb	r3, [r3, #0]
- 8000e6e:	b299      	uxth	r1, r3
- 8000e70:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
- 8000e74:	9302      	str	r3, [sp, #8]
- 8000e76:	2301      	movs	r3, #1
- 8000e78:	9301      	str	r3, [sp, #4]
- 8000e7a:	f107 030f 	add.w	r3, r7, #15
- 8000e7e:	9300      	str	r3, [sp, #0]
- 8000e80:	2301      	movs	r3, #1
- 8000e82:	22f4      	movs	r2, #244	; 0xf4
- 8000e84:	f000 ff24 	bl	8001cd0 <HAL_I2C_Mem_Write>
- 8000e88:	4603      	mov	r3, r0
- 8000e8a:	2b00      	cmp	r3, #0
- 8000e8c:	d002      	beq.n	8000e94 <BMP280_config+0x124>
-	{
-		return -1;
- 8000e8e:	f04f 33ff 	mov.w	r3, #4294967295
- 8000e92:	e01e      	b.n	8000ed2 <BMP280_config+0x162>
-	}
-	HAL_Delay(100);
- 8000e94:	2064      	movs	r0, #100	; 0x64
- 8000e96:	f000 fb4b 	bl	8001530 <HAL_Delay>
-
-	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_check , 1, 1000);
- 8000e9a:	687b      	ldr	r3, [r7, #4]
- 8000e9c:	6858      	ldr	r0, [r3, #4]
- 8000e9e:	687b      	ldr	r3, [r7, #4]
- 8000ea0:	781b      	ldrb	r3, [r3, #0]
- 8000ea2:	b299      	uxth	r1, r3
- 8000ea4:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
- 8000ea8:	9302      	str	r3, [sp, #8]
- 8000eaa:	2301      	movs	r3, #1
- 8000eac:	9301      	str	r3, [sp, #4]
- 8000eae:	f107 030e 	add.w	r3, r7, #14
- 8000eb2:	9300      	str	r3, [sp, #0]
- 8000eb4:	2301      	movs	r3, #1
- 8000eb6:	22f4      	movs	r2, #244	; 0xf4
- 8000eb8:	f001 f804 	bl	8001ec4 <HAL_I2C_Mem_Read>
-	if (_data_check != _data_to_write)
- 8000ebc:	7bba      	ldrb	r2, [r7, #14]
- 8000ebe:	7bfb      	ldrb	r3, [r7, #15]
- 8000ec0:	429a      	cmp	r2, r3
- 8000ec2:	d002      	beq.n	8000eca <BMP280_config+0x15a>
-	{
-		return -1;
- 8000ec4:	f04f 33ff 	mov.w	r3, #4294967295
- 8000ec8:	e003      	b.n	8000ed2 <BMP280_config+0x162>
-	}
-	HAL_Delay(100);
- 8000eca:	2064      	movs	r0, #100	; 0x64
- 8000ecc:	f000 fb30 	bl	8001530 <HAL_Delay>
-
-	return 0;
- 8000ed0:	2300      	movs	r3, #0
-}
- 8000ed2:	4618      	mov	r0, r3
- 8000ed4:	3710      	adds	r7, #16
- 8000ed6:	46bd      	mov	sp, r7
- 8000ed8:	bd80      	pop	{r7, pc}
-	...
-
-08000edc <_BMP280_compensate_T_int32>:
-	HAL_Delay(100);
-}
-
-
+/*
+ * @note	: This code based on the data sheet page 44.
+ */
 static BMP280_S32_t _BMP280_compensate_T_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_T)
 {
- 8000edc:	b480      	push	{r7}
- 8000ede:	b087      	sub	sp, #28
- 8000ee0:	af00      	add	r7, sp, #0
- 8000ee2:	6078      	str	r0, [r7, #4]
- 8000ee4:	6039      	str	r1, [r7, #0]
+ 8000d70:	b480      	push	{r7}
+ 8000d72:	b087      	sub	sp, #28
+ 8000d74:	af00      	add	r7, sp, #0
+ 8000d76:	6078      	str	r0, [r7, #4]
+ 8000d78:	6039      	str	r1, [r7, #0]
 	BMP280_S32_t _var1, _var2, _T;
 
 	_var1 = ((((adc_T>>3) - ((BMP280_S32_t)me->dig_T1<<1))) * ((BMP280_S32_t)me->dig_T2)) >> 11;
- 8000ee6:	683b      	ldr	r3, [r7, #0]
- 8000ee8:	10da      	asrs	r2, r3, #3
- 8000eea:	687b      	ldr	r3, [r7, #4]
- 8000eec:	891b      	ldrh	r3, [r3, #8]
- 8000eee:	005b      	lsls	r3, r3, #1
- 8000ef0:	1ad3      	subs	r3, r2, r3
- 8000ef2:	687a      	ldr	r2, [r7, #4]
- 8000ef4:	f9b2 200c 	ldrsh.w	r2, [r2, #12]
- 8000ef8:	fb02 f303 	mul.w	r3, r2, r3
- 8000efc:	12db      	asrs	r3, r3, #11
- 8000efe:	617b      	str	r3, [r7, #20]
+ 8000d7a:	683b      	ldr	r3, [r7, #0]
+ 8000d7c:	10da      	asrs	r2, r3, #3
+ 8000d7e:	687b      	ldr	r3, [r7, #4]
+ 8000d80:	891b      	ldrh	r3, [r3, #8]
+ 8000d82:	005b      	lsls	r3, r3, #1
+ 8000d84:	1ad3      	subs	r3, r2, r3
+ 8000d86:	687a      	ldr	r2, [r7, #4]
+ 8000d88:	f9b2 200c 	ldrsh.w	r2, [r2, #12]
+ 8000d8c:	fb02 f303 	mul.w	r3, r2, r3
+ 8000d90:	12db      	asrs	r3, r3, #11
+ 8000d92:	617b      	str	r3, [r7, #20]
 	_var2 = (((((adc_T>>4) - ((BMP280_S32_t)me->dig_T1)) * ((adc_T>>4) - ((BMP280_S32_t)me->dig_T1))) >> 12) * ((BMP280_S32_t)me->dig_T3)) >> 14;
- 8000f00:	683b      	ldr	r3, [r7, #0]
- 8000f02:	111b      	asrs	r3, r3, #4
- 8000f04:	687a      	ldr	r2, [r7, #4]
- 8000f06:	8912      	ldrh	r2, [r2, #8]
- 8000f08:	1a9b      	subs	r3, r3, r2
- 8000f0a:	683a      	ldr	r2, [r7, #0]
- 8000f0c:	1112      	asrs	r2, r2, #4
- 8000f0e:	6879      	ldr	r1, [r7, #4]
- 8000f10:	8909      	ldrh	r1, [r1, #8]
- 8000f12:	1a52      	subs	r2, r2, r1
- 8000f14:	fb02 f303 	mul.w	r3, r2, r3
- 8000f18:	131b      	asrs	r3, r3, #12
- 8000f1a:	687a      	ldr	r2, [r7, #4]
- 8000f1c:	f9b2 200e 	ldrsh.w	r2, [r2, #14]
- 8000f20:	fb02 f303 	mul.w	r3, r2, r3
- 8000f24:	139b      	asrs	r3, r3, #14
- 8000f26:	613b      	str	r3, [r7, #16]
+ 8000d94:	683b      	ldr	r3, [r7, #0]
+ 8000d96:	111b      	asrs	r3, r3, #4
+ 8000d98:	687a      	ldr	r2, [r7, #4]
+ 8000d9a:	8912      	ldrh	r2, [r2, #8]
+ 8000d9c:	1a9b      	subs	r3, r3, r2
+ 8000d9e:	683a      	ldr	r2, [r7, #0]
+ 8000da0:	1112      	asrs	r2, r2, #4
+ 8000da2:	6879      	ldr	r1, [r7, #4]
+ 8000da4:	8909      	ldrh	r1, [r1, #8]
+ 8000da6:	1a52      	subs	r2, r2, r1
+ 8000da8:	fb02 f303 	mul.w	r3, r2, r3
+ 8000dac:	131b      	asrs	r3, r3, #12
+ 8000dae:	687a      	ldr	r2, [r7, #4]
+ 8000db0:	f9b2 200e 	ldrsh.w	r2, [r2, #14]
+ 8000db4:	fb02 f303 	mul.w	r3, r2, r3
+ 8000db8:	139b      	asrs	r3, r3, #14
+ 8000dba:	613b      	str	r3, [r7, #16]
 	t_fine = _var1 + _var2;
- 8000f28:	697a      	ldr	r2, [r7, #20]
- 8000f2a:	693b      	ldr	r3, [r7, #16]
- 8000f2c:	4413      	add	r3, r2
- 8000f2e:	4a08      	ldr	r2, [pc, #32]	; (8000f50 <_BMP280_compensate_T_int32+0x74>)
- 8000f30:	6013      	str	r3, [r2, #0]
+ 8000dbc:	697a      	ldr	r2, [r7, #20]
+ 8000dbe:	693b      	ldr	r3, [r7, #16]
+ 8000dc0:	4413      	add	r3, r2
+ 8000dc2:	4a08      	ldr	r2, [pc, #32]	; (8000de4 <_BMP280_compensate_T_int32+0x74>)
+ 8000dc4:	6013      	str	r3, [r2, #0]
 	_T = (t_fine * 5 + 128) >> 8;
- 8000f32:	4b07      	ldr	r3, [pc, #28]	; (8000f50 <_BMP280_compensate_T_int32+0x74>)
- 8000f34:	681a      	ldr	r2, [r3, #0]
- 8000f36:	4613      	mov	r3, r2
- 8000f38:	009b      	lsls	r3, r3, #2
- 8000f3a:	4413      	add	r3, r2
- 8000f3c:	3380      	adds	r3, #128	; 0x80
- 8000f3e:	121b      	asrs	r3, r3, #8
- 8000f40:	60fb      	str	r3, [r7, #12]
+ 8000dc6:	4b07      	ldr	r3, [pc, #28]	; (8000de4 <_BMP280_compensate_T_int32+0x74>)
+ 8000dc8:	681a      	ldr	r2, [r3, #0]
+ 8000dca:	4613      	mov	r3, r2
+ 8000dcc:	009b      	lsls	r3, r3, #2
+ 8000dce:	4413      	add	r3, r2
+ 8000dd0:	3380      	adds	r3, #128	; 0x80
+ 8000dd2:	121b      	asrs	r3, r3, #8
+ 8000dd4:	60fb      	str	r3, [r7, #12]
 	return _T;
- 8000f42:	68fb      	ldr	r3, [r7, #12]
+ 8000dd6:	68fb      	ldr	r3, [r7, #12]
 
 }
- 8000f44:	4618      	mov	r0, r3
- 8000f46:	371c      	adds	r7, #28
- 8000f48:	46bd      	mov	sp, r7
- 8000f4a:	bc80      	pop	{r7}
- 8000f4c:	4770      	bx	lr
- 8000f4e:	bf00      	nop
- 8000f50:	20000458 	.word	0x20000458
+ 8000dd8:	4618      	mov	r0, r3
+ 8000dda:	371c      	adds	r7, #28
+ 8000ddc:	46bd      	mov	sp, r7
+ 8000dde:	bc80      	pop	{r7}
+ 8000de0:	4770      	bx	lr
+ 8000de2:	bf00      	nop
+ 8000de4:	20000458 	.word	0x20000458
 
-08000f54 <_BMP280_compensate_P_int32>:
+08000de8 <_BMP280_compensate_P_int32>:
 
 static BMP280_U32_t _BMP280_compensate_P_int32(BMP280_TypeDef * const me, BMP280_S32_t adc_P)
 {
- 8000f54:	b480      	push	{r7}
- 8000f56:	b087      	sub	sp, #28
- 8000f58:	af00      	add	r7, sp, #0
- 8000f5a:	6078      	str	r0, [r7, #4]
- 8000f5c:	6039      	str	r1, [r7, #0]
+ 8000de8:	b480      	push	{r7}
+ 8000dea:	b087      	sub	sp, #28
+ 8000dec:	af00      	add	r7, sp, #0
+ 8000dee:	6078      	str	r0, [r7, #4]
+ 8000df0:	6039      	str	r1, [r7, #0]
 	BMP280_S32_t _var1, _var2;
 	BMP280_U32_t _P;
 	_var1 = ((t_fine)>>1) - (BMP280_S32_t)64000;
- 8000f5e:	4b4a      	ldr	r3, [pc, #296]	; (8001088 <_BMP280_compensate_P_int32+0x134>)
- 8000f60:	681b      	ldr	r3, [r3, #0]
- 8000f62:	105b      	asrs	r3, r3, #1
- 8000f64:	f5a3 437a 	sub.w	r3, r3, #64000	; 0xfa00
- 8000f68:	613b      	str	r3, [r7, #16]
+ 8000df2:	4b4a      	ldr	r3, [pc, #296]	; (8000f1c <_BMP280_compensate_P_int32+0x134>)
+ 8000df4:	681b      	ldr	r3, [r3, #0]
+ 8000df6:	105b      	asrs	r3, r3, #1
+ 8000df8:	f5a3 437a 	sub.w	r3, r3, #64000	; 0xfa00
+ 8000dfc:	613b      	str	r3, [r7, #16]
 	_var2 = (((_var1>>2) * (_var1>>2)) >> 11 ) * ((BMP280_S32_t)me->dig_P6);
- 8000f6a:	693b      	ldr	r3, [r7, #16]
- 8000f6c:	109b      	asrs	r3, r3, #2
- 8000f6e:	693a      	ldr	r2, [r7, #16]
- 8000f70:	1092      	asrs	r2, r2, #2
- 8000f72:	fb02 f303 	mul.w	r3, r2, r3
- 8000f76:	12db      	asrs	r3, r3, #11
- 8000f78:	687a      	ldr	r2, [r7, #4]
- 8000f7a:	f9b2 2018 	ldrsh.w	r2, [r2, #24]
- 8000f7e:	fb02 f303 	mul.w	r3, r2, r3
- 8000f82:	60fb      	str	r3, [r7, #12]
+ 8000dfe:	693b      	ldr	r3, [r7, #16]
+ 8000e00:	109b      	asrs	r3, r3, #2
+ 8000e02:	693a      	ldr	r2, [r7, #16]
+ 8000e04:	1092      	asrs	r2, r2, #2
+ 8000e06:	fb02 f303 	mul.w	r3, r2, r3
+ 8000e0a:	12db      	asrs	r3, r3, #11
+ 8000e0c:	687a      	ldr	r2, [r7, #4]
+ 8000e0e:	f9b2 2018 	ldrsh.w	r2, [r2, #24]
+ 8000e12:	fb02 f303 	mul.w	r3, r2, r3
+ 8000e16:	60fb      	str	r3, [r7, #12]
 	_var2 = _var2 + ((_var1*((BMP280_S32_t)me->dig_P5))<<1);
- 8000f84:	687b      	ldr	r3, [r7, #4]
- 8000f86:	f9b3 3016 	ldrsh.w	r3, [r3, #22]
- 8000f8a:	461a      	mov	r2, r3
- 8000f8c:	693b      	ldr	r3, [r7, #16]
- 8000f8e:	fb02 f303 	mul.w	r3, r2, r3
- 8000f92:	005b      	lsls	r3, r3, #1
- 8000f94:	68fa      	ldr	r2, [r7, #12]
- 8000f96:	4413      	add	r3, r2
- 8000f98:	60fb      	str	r3, [r7, #12]
+ 8000e18:	687b      	ldr	r3, [r7, #4]
+ 8000e1a:	f9b3 3016 	ldrsh.w	r3, [r3, #22]
+ 8000e1e:	461a      	mov	r2, r3
+ 8000e20:	693b      	ldr	r3, [r7, #16]
+ 8000e22:	fb02 f303 	mul.w	r3, r2, r3
+ 8000e26:	005b      	lsls	r3, r3, #1
+ 8000e28:	68fa      	ldr	r2, [r7, #12]
+ 8000e2a:	4413      	add	r3, r2
+ 8000e2c:	60fb      	str	r3, [r7, #12]
 	_var2 = (_var2>>2)+(((BMP280_S32_t)me->dig_P4)<<16);
- 8000f9a:	68fb      	ldr	r3, [r7, #12]
- 8000f9c:	109a      	asrs	r2, r3, #2
- 8000f9e:	687b      	ldr	r3, [r7, #4]
- 8000fa0:	f9b3 3014 	ldrsh.w	r3, [r3, #20]
- 8000fa4:	041b      	lsls	r3, r3, #16
- 8000fa6:	4413      	add	r3, r2
- 8000fa8:	60fb      	str	r3, [r7, #12]
+ 8000e2e:	68fb      	ldr	r3, [r7, #12]
+ 8000e30:	109a      	asrs	r2, r3, #2
+ 8000e32:	687b      	ldr	r3, [r7, #4]
+ 8000e34:	f9b3 3014 	ldrsh.w	r3, [r3, #20]
+ 8000e38:	041b      	lsls	r3, r3, #16
+ 8000e3a:	4413      	add	r3, r2
+ 8000e3c:	60fb      	str	r3, [r7, #12]
 	_var1 = (((me->dig_P3 * (((_var1>>2) * (_var1>>2)) >> 13 )) >> 3) + ((((BMP280_S32_t)me->dig_P2) * _var1)>>1))>>18;
- 8000faa:	687b      	ldr	r3, [r7, #4]
- 8000fac:	f9b3 3012 	ldrsh.w	r3, [r3, #18]
- 8000fb0:	4619      	mov	r1, r3
- 8000fb2:	693b      	ldr	r3, [r7, #16]
- 8000fb4:	109b      	asrs	r3, r3, #2
- 8000fb6:	693a      	ldr	r2, [r7, #16]
- 8000fb8:	1092      	asrs	r2, r2, #2
- 8000fba:	fb02 f303 	mul.w	r3, r2, r3
- 8000fbe:	135b      	asrs	r3, r3, #13
- 8000fc0:	fb01 f303 	mul.w	r3, r1, r3
- 8000fc4:	10da      	asrs	r2, r3, #3
- 8000fc6:	687b      	ldr	r3, [r7, #4]
- 8000fc8:	f9b3 3010 	ldrsh.w	r3, [r3, #16]
- 8000fcc:	4619      	mov	r1, r3
- 8000fce:	693b      	ldr	r3, [r7, #16]
- 8000fd0:	fb01 f303 	mul.w	r3, r1, r3
- 8000fd4:	105b      	asrs	r3, r3, #1
- 8000fd6:	4413      	add	r3, r2
- 8000fd8:	149b      	asrs	r3, r3, #18
- 8000fda:	613b      	str	r3, [r7, #16]
+ 8000e3e:	687b      	ldr	r3, [r7, #4]
+ 8000e40:	f9b3 3012 	ldrsh.w	r3, [r3, #18]
+ 8000e44:	4619      	mov	r1, r3
+ 8000e46:	693b      	ldr	r3, [r7, #16]
+ 8000e48:	109b      	asrs	r3, r3, #2
+ 8000e4a:	693a      	ldr	r2, [r7, #16]
+ 8000e4c:	1092      	asrs	r2, r2, #2
+ 8000e4e:	fb02 f303 	mul.w	r3, r2, r3
+ 8000e52:	135b      	asrs	r3, r3, #13
+ 8000e54:	fb01 f303 	mul.w	r3, r1, r3
+ 8000e58:	10da      	asrs	r2, r3, #3
+ 8000e5a:	687b      	ldr	r3, [r7, #4]
+ 8000e5c:	f9b3 3010 	ldrsh.w	r3, [r3, #16]
+ 8000e60:	4619      	mov	r1, r3
+ 8000e62:	693b      	ldr	r3, [r7, #16]
+ 8000e64:	fb01 f303 	mul.w	r3, r1, r3
+ 8000e68:	105b      	asrs	r3, r3, #1
+ 8000e6a:	4413      	add	r3, r2
+ 8000e6c:	149b      	asrs	r3, r3, #18
+ 8000e6e:	613b      	str	r3, [r7, #16]
 	_var1 =((((32768+_var1))*((BMP280_S32_t)me->dig_P1))>>15);
- 8000fdc:	693b      	ldr	r3, [r7, #16]
- 8000fde:	f503 4300 	add.w	r3, r3, #32768	; 0x8000
- 8000fe2:	687a      	ldr	r2, [r7, #4]
- 8000fe4:	8952      	ldrh	r2, [r2, #10]
- 8000fe6:	fb02 f303 	mul.w	r3, r2, r3
- 8000fea:	13db      	asrs	r3, r3, #15
- 8000fec:	613b      	str	r3, [r7, #16]
+ 8000e70:	693b      	ldr	r3, [r7, #16]
+ 8000e72:	f503 4300 	add.w	r3, r3, #32768	; 0x8000
+ 8000e76:	687a      	ldr	r2, [r7, #4]
+ 8000e78:	8952      	ldrh	r2, [r2, #10]
+ 8000e7a:	fb02 f303 	mul.w	r3, r2, r3
+ 8000e7e:	13db      	asrs	r3, r3, #15
+ 8000e80:	613b      	str	r3, [r7, #16]
 	if (_var1 == 0)
- 8000fee:	693b      	ldr	r3, [r7, #16]
- 8000ff0:	2b00      	cmp	r3, #0
- 8000ff2:	d101      	bne.n	8000ff8 <_BMP280_compensate_P_int32+0xa4>
+ 8000e82:	693b      	ldr	r3, [r7, #16]
+ 8000e84:	2b00      	cmp	r3, #0
+ 8000e86:	d101      	bne.n	8000e8c <_BMP280_compensate_P_int32+0xa4>
 	{
 		return 0; // avoid exce_Ption caused by division by zero
- 8000ff4:	2300      	movs	r3, #0
- 8000ff6:	e041      	b.n	800107c <_BMP280_compensate_P_int32+0x128>
+ 8000e88:	2300      	movs	r3, #0
+ 8000e8a:	e041      	b.n	8000f10 <_BMP280_compensate_P_int32+0x128>
 	}
 	_P = (((BMP280_U32_t)(((BMP280_S32_t)1048576)-adc_P)-(_var2>>12)))*3125;
- 8000ff8:	68fb      	ldr	r3, [r7, #12]
- 8000ffa:	131b      	asrs	r3, r3, #12
- 8000ffc:	461a      	mov	r2, r3
- 8000ffe:	683b      	ldr	r3, [r7, #0]
- 8001000:	4413      	add	r3, r2
- 8001002:	4a22      	ldr	r2, [pc, #136]	; (800108c <_BMP280_compensate_P_int32+0x138>)
- 8001004:	fb02 f303 	mul.w	r3, r2, r3
- 8001008:	f103 4343 	add.w	r3, r3, #3271557120	; 0xc3000000
- 800100c:	f503 03a0 	add.w	r3, r3, #5242880	; 0x500000
- 8001010:	617b      	str	r3, [r7, #20]
+ 8000e8c:	68fb      	ldr	r3, [r7, #12]
+ 8000e8e:	131b      	asrs	r3, r3, #12
+ 8000e90:	461a      	mov	r2, r3
+ 8000e92:	683b      	ldr	r3, [r7, #0]
+ 8000e94:	4413      	add	r3, r2
+ 8000e96:	4a22      	ldr	r2, [pc, #136]	; (8000f20 <_BMP280_compensate_P_int32+0x138>)
+ 8000e98:	fb02 f303 	mul.w	r3, r2, r3
+ 8000e9c:	f103 4343 	add.w	r3, r3, #3271557120	; 0xc3000000
+ 8000ea0:	f503 03a0 	add.w	r3, r3, #5242880	; 0x500000
+ 8000ea4:	617b      	str	r3, [r7, #20]
 	if (_P < 0x80000000)
- 8001012:	697b      	ldr	r3, [r7, #20]
- 8001014:	2b00      	cmp	r3, #0
- 8001016:	db06      	blt.n	8001026 <_BMP280_compensate_P_int32+0xd2>
+ 8000ea6:	697b      	ldr	r3, [r7, #20]
+ 8000ea8:	2b00      	cmp	r3, #0
+ 8000eaa:	db06      	blt.n	8000eba <_BMP280_compensate_P_int32+0xd2>
 	{
 		_P = (_P << 1) / ((BMP280_U32_t)_var1);
- 8001018:	697b      	ldr	r3, [r7, #20]
- 800101a:	005a      	lsls	r2, r3, #1
- 800101c:	693b      	ldr	r3, [r7, #16]
- 800101e:	fbb2 f3f3 	udiv	r3, r2, r3
- 8001022:	617b      	str	r3, [r7, #20]
- 8001024:	e005      	b.n	8001032 <_BMP280_compensate_P_int32+0xde>
+ 8000eac:	697b      	ldr	r3, [r7, #20]
+ 8000eae:	005a      	lsls	r2, r3, #1
+ 8000eb0:	693b      	ldr	r3, [r7, #16]
+ 8000eb2:	fbb2 f3f3 	udiv	r3, r2, r3
+ 8000eb6:	617b      	str	r3, [r7, #20]
+ 8000eb8:	e005      	b.n	8000ec6 <_BMP280_compensate_P_int32+0xde>
 	}
 	else
 	{
 		_P = (_P / (BMP280_U32_t)_var1) * 2;
- 8001026:	693b      	ldr	r3, [r7, #16]
- 8001028:	697a      	ldr	r2, [r7, #20]
- 800102a:	fbb2 f3f3 	udiv	r3, r2, r3
- 800102e:	005b      	lsls	r3, r3, #1
- 8001030:	617b      	str	r3, [r7, #20]
+ 8000eba:	693b      	ldr	r3, [r7, #16]
+ 8000ebc:	697a      	ldr	r2, [r7, #20]
+ 8000ebe:	fbb2 f3f3 	udiv	r3, r2, r3
+ 8000ec2:	005b      	lsls	r3, r3, #1
+ 8000ec4:	617b      	str	r3, [r7, #20]
 	}
 	_var1 = (((BMP280_S32_t)me->dig_P9) * ((BMP280_S32_t)(((_P>>3) * (_P>>3))>>13)))>>12;
- 8001032:	687b      	ldr	r3, [r7, #4]
- 8001034:	f9b3 301e 	ldrsh.w	r3, [r3, #30]
- 8001038:	4619      	mov	r1, r3
- 800103a:	697b      	ldr	r3, [r7, #20]
- 800103c:	08db      	lsrs	r3, r3, #3
- 800103e:	697a      	ldr	r2, [r7, #20]
- 8001040:	08d2      	lsrs	r2, r2, #3
- 8001042:	fb02 f303 	mul.w	r3, r2, r3
- 8001046:	0b5b      	lsrs	r3, r3, #13
- 8001048:	fb01 f303 	mul.w	r3, r1, r3
- 800104c:	131b      	asrs	r3, r3, #12
- 800104e:	613b      	str	r3, [r7, #16]
+ 8000ec6:	687b      	ldr	r3, [r7, #4]
+ 8000ec8:	f9b3 301e 	ldrsh.w	r3, [r3, #30]
+ 8000ecc:	4619      	mov	r1, r3
+ 8000ece:	697b      	ldr	r3, [r7, #20]
+ 8000ed0:	08db      	lsrs	r3, r3, #3
+ 8000ed2:	697a      	ldr	r2, [r7, #20]
+ 8000ed4:	08d2      	lsrs	r2, r2, #3
+ 8000ed6:	fb02 f303 	mul.w	r3, r2, r3
+ 8000eda:	0b5b      	lsrs	r3, r3, #13
+ 8000edc:	fb01 f303 	mul.w	r3, r1, r3
+ 8000ee0:	131b      	asrs	r3, r3, #12
+ 8000ee2:	613b      	str	r3, [r7, #16]
 	_var2 = (((BMP280_S32_t)(_P>>2)) * ((BMP280_S32_t)me->dig_P8))>>13;
- 8001050:	697b      	ldr	r3, [r7, #20]
- 8001052:	089b      	lsrs	r3, r3, #2
- 8001054:	461a      	mov	r2, r3
- 8001056:	687b      	ldr	r3, [r7, #4]
- 8001058:	f9b3 301c 	ldrsh.w	r3, [r3, #28]
- 800105c:	fb02 f303 	mul.w	r3, r2, r3
- 8001060:	135b      	asrs	r3, r3, #13
- 8001062:	60fb      	str	r3, [r7, #12]
+ 8000ee4:	697b      	ldr	r3, [r7, #20]
+ 8000ee6:	089b      	lsrs	r3, r3, #2
+ 8000ee8:	461a      	mov	r2, r3
+ 8000eea:	687b      	ldr	r3, [r7, #4]
+ 8000eec:	f9b3 301c 	ldrsh.w	r3, [r3, #28]
+ 8000ef0:	fb02 f303 	mul.w	r3, r2, r3
+ 8000ef4:	135b      	asrs	r3, r3, #13
+ 8000ef6:	60fb      	str	r3, [r7, #12]
 	_P = (BMP280_U32_t)((BMP280_S32_t)_P + ((_var1 + _var2 + me->dig_P7) >> 4));
- 8001064:	693a      	ldr	r2, [r7, #16]
- 8001066:	68fb      	ldr	r3, [r7, #12]
- 8001068:	4413      	add	r3, r2
- 800106a:	687a      	ldr	r2, [r7, #4]
- 800106c:	f9b2 201a 	ldrsh.w	r2, [r2, #26]
- 8001070:	4413      	add	r3, r2
- 8001072:	111a      	asrs	r2, r3, #4
- 8001074:	697b      	ldr	r3, [r7, #20]
- 8001076:	4413      	add	r3, r2
- 8001078:	617b      	str	r3, [r7, #20]
+ 8000ef8:	693a      	ldr	r2, [r7, #16]
+ 8000efa:	68fb      	ldr	r3, [r7, #12]
+ 8000efc:	4413      	add	r3, r2
+ 8000efe:	687a      	ldr	r2, [r7, #4]
+ 8000f00:	f9b2 201a 	ldrsh.w	r2, [r2, #26]
+ 8000f04:	4413      	add	r3, r2
+ 8000f06:	111a      	asrs	r2, r3, #4
+ 8000f08:	697b      	ldr	r3, [r7, #20]
+ 8000f0a:	4413      	add	r3, r2
+ 8000f0c:	617b      	str	r3, [r7, #20]
 	return _P;
- 800107a:	697b      	ldr	r3, [r7, #20]
+ 8000f0e:	697b      	ldr	r3, [r7, #20]
 }
- 800107c:	4618      	mov	r0, r3
- 800107e:	371c      	adds	r7, #28
- 8001080:	46bd      	mov	sp, r7
- 8001082:	bc80      	pop	{r7}
- 8001084:	4770      	bx	lr
- 8001086:	bf00      	nop
- 8001088:	20000458 	.word	0x20000458
- 800108c:	fffff3cb 	.word	0xfffff3cb
+ 8000f10:	4618      	mov	r0, r3
+ 8000f12:	371c      	adds	r7, #28
+ 8000f14:	46bd      	mov	sp, r7
+ 8000f16:	bc80      	pop	{r7}
+ 8000f18:	4770      	bx	lr
+ 8000f1a:	bf00      	nop
+ 8000f1c:	20000458 	.word	0x20000458
+ 8000f20:	fffff3cb 	.word	0xfffff3cb
 
-08001090 <BMP280_measure>:
+08000f24 <BMP280_config>:
+
+
+/* Public Methods */
+
+int BMP280_config(BMP280_TypeDef * const me, uint8_t osrs_t, uint8_t osrs_p, uint8_t mode, uint8_t t_sb, uint8_t filter)
+{
+ 8000f24:	b580      	push	{r7, lr}
+ 8000f26:	b088      	sub	sp, #32
+ 8000f28:	af04      	add	r7, sp, #16
+ 8000f2a:	6078      	str	r0, [r7, #4]
+ 8000f2c:	4608      	mov	r0, r1
+ 8000f2e:	4611      	mov	r1, r2
+ 8000f30:	461a      	mov	r2, r3
+ 8000f32:	4603      	mov	r3, r0
+ 8000f34:	70fb      	strb	r3, [r7, #3]
+ 8000f36:	460b      	mov	r3, r1
+ 8000f38:	70bb      	strb	r3, [r7, #2]
+ 8000f3a:	4613      	mov	r3, r2
+ 8000f3c:	707b      	strb	r3, [r7, #1]
+	uint8_t _data_to_write = 0;
+ 8000f3e:	2300      	movs	r3, #0
+ 8000f40:	73fb      	strb	r3, [r7, #15]
+	uint8_t _data_check = 0;
+ 8000f42:	2300      	movs	r3, #0
+ 8000f44:	73bb      	strb	r3, [r7, #14]
+
+	// read NVM device and store it to struct.
+	_trimRead(me);
+ 8000f46:	6878      	ldr	r0, [r7, #4]
+ 8000f48:	f7ff fe3e 	bl	8000bc8 <_trimRead>
+
+	// reset the device
+	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, RESET_REG, 1, (uint8_t *) 0xB6, 1, 1000) != HAL_OK)
+ 8000f4c:	687b      	ldr	r3, [r7, #4]
+ 8000f4e:	6858      	ldr	r0, [r3, #4]
+ 8000f50:	687b      	ldr	r3, [r7, #4]
+ 8000f52:	781b      	ldrb	r3, [r3, #0]
+ 8000f54:	b299      	uxth	r1, r3
+ 8000f56:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
+ 8000f5a:	9302      	str	r3, [sp, #8]
+ 8000f5c:	2301      	movs	r3, #1
+ 8000f5e:	9301      	str	r3, [sp, #4]
+ 8000f60:	23b6      	movs	r3, #182	; 0xb6
+ 8000f62:	9300      	str	r3, [sp, #0]
+ 8000f64:	2301      	movs	r3, #1
+ 8000f66:	22e0      	movs	r2, #224	; 0xe0
+ 8000f68:	f000 feb2 	bl	8001cd0 <HAL_I2C_Mem_Write>
+ 8000f6c:	4603      	mov	r3, r0
+ 8000f6e:	2b00      	cmp	r3, #0
+ 8000f70:	d002      	beq.n	8000f78 <BMP280_config+0x54>
+	{
+		return -1;
+ 8000f72:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000f76:	e085      	b.n	8001084 <BMP280_config+0x160>
+	}
+	HAL_Delay(100);
+ 8000f78:	2064      	movs	r0, #100	; 0x64
+ 8000f7a:	f000 fad9 	bl	8001530 <HAL_Delay>
+
+	// set standby and filter IIR
+	_data_to_write = (t_sb << 5) | (filter << 2);
+ 8000f7e:	7e3b      	ldrb	r3, [r7, #24]
+ 8000f80:	015b      	lsls	r3, r3, #5
+ 8000f82:	b25a      	sxtb	r2, r3
+ 8000f84:	7f3b      	ldrb	r3, [r7, #28]
+ 8000f86:	009b      	lsls	r3, r3, #2
+ 8000f88:	b25b      	sxtb	r3, r3
+ 8000f8a:	4313      	orrs	r3, r2
+ 8000f8c:	b25b      	sxtb	r3, r3
+ 8000f8e:	b2db      	uxtb	r3, r3
+ 8000f90:	73fb      	strb	r3, [r7, #15]
+	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CONFIG_REG, 1,&_data_to_write , 1, 1000) != HAL_OK)
+ 8000f92:	687b      	ldr	r3, [r7, #4]
+ 8000f94:	6858      	ldr	r0, [r3, #4]
+ 8000f96:	687b      	ldr	r3, [r7, #4]
+ 8000f98:	781b      	ldrb	r3, [r3, #0]
+ 8000f9a:	b299      	uxth	r1, r3
+ 8000f9c:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
+ 8000fa0:	9302      	str	r3, [sp, #8]
+ 8000fa2:	2301      	movs	r3, #1
+ 8000fa4:	9301      	str	r3, [sp, #4]
+ 8000fa6:	f107 030f 	add.w	r3, r7, #15
+ 8000faa:	9300      	str	r3, [sp, #0]
+ 8000fac:	2301      	movs	r3, #1
+ 8000fae:	22f5      	movs	r2, #245	; 0xf5
+ 8000fb0:	f000 fe8e 	bl	8001cd0 <HAL_I2C_Mem_Write>
+ 8000fb4:	4603      	mov	r3, r0
+ 8000fb6:	2b00      	cmp	r3, #0
+ 8000fb8:	d002      	beq.n	8000fc0 <BMP280_config+0x9c>
+	{
+		return -1;
+ 8000fba:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000fbe:	e061      	b.n	8001084 <BMP280_config+0x160>
+	}
+	HAL_Delay(100);
+ 8000fc0:	2064      	movs	r0, #100	; 0x64
+ 8000fc2:	f000 fab5 	bl	8001530 <HAL_Delay>
+
+	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CONFIG_REG, 1,&_data_check , 1, 1000);
+ 8000fc6:	687b      	ldr	r3, [r7, #4]
+ 8000fc8:	6858      	ldr	r0, [r3, #4]
+ 8000fca:	687b      	ldr	r3, [r7, #4]
+ 8000fcc:	781b      	ldrb	r3, [r3, #0]
+ 8000fce:	b299      	uxth	r1, r3
+ 8000fd0:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
+ 8000fd4:	9302      	str	r3, [sp, #8]
+ 8000fd6:	2301      	movs	r3, #1
+ 8000fd8:	9301      	str	r3, [sp, #4]
+ 8000fda:	f107 030e 	add.w	r3, r7, #14
+ 8000fde:	9300      	str	r3, [sp, #0]
+ 8000fe0:	2301      	movs	r3, #1
+ 8000fe2:	22f5      	movs	r2, #245	; 0xf5
+ 8000fe4:	f000 ff6e 	bl	8001ec4 <HAL_I2C_Mem_Read>
+	if (_data_check != _data_to_write)
+ 8000fe8:	7bba      	ldrb	r2, [r7, #14]
+ 8000fea:	7bfb      	ldrb	r3, [r7, #15]
+ 8000fec:	429a      	cmp	r2, r3
+ 8000fee:	d002      	beq.n	8000ff6 <BMP280_config+0xd2>
+	{
+		return -1;
+ 8000ff0:	f04f 33ff 	mov.w	r3, #4294967295
+ 8000ff4:	e046      	b.n	8001084 <BMP280_config+0x160>
+	}
+	HAL_Delay(100);
+ 8000ff6:	2064      	movs	r0, #100	; 0x64
+ 8000ff8:	f000 fa9a 	bl	8001530 <HAL_Delay>
+
+
+	// over sampling configuration for temperature and pressure
+	_data_to_write = (osrs_t << 5) | (osrs_p << 2) | mode;
+ 8000ffc:	78fb      	ldrb	r3, [r7, #3]
+ 8000ffe:	015b      	lsls	r3, r3, #5
+ 8001000:	b25a      	sxtb	r2, r3
+ 8001002:	78bb      	ldrb	r3, [r7, #2]
+ 8001004:	009b      	lsls	r3, r3, #2
+ 8001006:	b25b      	sxtb	r3, r3
+ 8001008:	4313      	orrs	r3, r2
+ 800100a:	b25a      	sxtb	r2, r3
+ 800100c:	f997 3001 	ldrsb.w	r3, [r7, #1]
+ 8001010:	4313      	orrs	r3, r2
+ 8001012:	b25b      	sxtb	r3, r3
+ 8001014:	b2db      	uxtb	r3, r3
+ 8001016:	73fb      	strb	r3, [r7, #15]
+	if (HAL_I2C_Mem_Write(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_to_write, 1, 1000) != HAL_OK)
+ 8001018:	687b      	ldr	r3, [r7, #4]
+ 800101a:	6858      	ldr	r0, [r3, #4]
+ 800101c:	687b      	ldr	r3, [r7, #4]
+ 800101e:	781b      	ldrb	r3, [r3, #0]
+ 8001020:	b299      	uxth	r1, r3
+ 8001022:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
+ 8001026:	9302      	str	r3, [sp, #8]
+ 8001028:	2301      	movs	r3, #1
+ 800102a:	9301      	str	r3, [sp, #4]
+ 800102c:	f107 030f 	add.w	r3, r7, #15
+ 8001030:	9300      	str	r3, [sp, #0]
+ 8001032:	2301      	movs	r3, #1
+ 8001034:	22f4      	movs	r2, #244	; 0xf4
+ 8001036:	f000 fe4b 	bl	8001cd0 <HAL_I2C_Mem_Write>
+ 800103a:	4603      	mov	r3, r0
+ 800103c:	2b00      	cmp	r3, #0
+ 800103e:	d002      	beq.n	8001046 <BMP280_config+0x122>
+	{
+		return -1;
+ 8001040:	f04f 33ff 	mov.w	r3, #4294967295
+ 8001044:	e01e      	b.n	8001084 <BMP280_config+0x160>
+	}
+	HAL_Delay(100);
+ 8001046:	2064      	movs	r0, #100	; 0x64
+ 8001048:	f000 fa72 	bl	8001530 <HAL_Delay>
+
+	HAL_I2C_Mem_Read(me->hi2c, me->dev_address, CTRL_MEAS_REG, 1, &_data_check , 1, 1000);
+ 800104c:	687b      	ldr	r3, [r7, #4]
+ 800104e:	6858      	ldr	r0, [r3, #4]
+ 8001050:	687b      	ldr	r3, [r7, #4]
+ 8001052:	781b      	ldrb	r3, [r3, #0]
+ 8001054:	b299      	uxth	r1, r3
+ 8001056:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
+ 800105a:	9302      	str	r3, [sp, #8]
+ 800105c:	2301      	movs	r3, #1
+ 800105e:	9301      	str	r3, [sp, #4]
+ 8001060:	f107 030e 	add.w	r3, r7, #14
+ 8001064:	9300      	str	r3, [sp, #0]
+ 8001066:	2301      	movs	r3, #1
+ 8001068:	22f4      	movs	r2, #244	; 0xf4
+ 800106a:	f000 ff2b 	bl	8001ec4 <HAL_I2C_Mem_Read>
+	if (_data_check != _data_to_write)
+ 800106e:	7bba      	ldrb	r2, [r7, #14]
+ 8001070:	7bfb      	ldrb	r3, [r7, #15]
+ 8001072:	429a      	cmp	r2, r3
+ 8001074:	d002      	beq.n	800107c <BMP280_config+0x158>
+	{
+		return -1;
+ 8001076:	f04f 33ff 	mov.w	r3, #4294967295
+ 800107a:	e003      	b.n	8001084 <BMP280_config+0x160>
+	}
+	HAL_Delay(100);
+ 800107c:	2064      	movs	r0, #100	; 0x64
+ 800107e:	f000 fa57 	bl	8001530 <HAL_Delay>
+
+	return 0;
+ 8001082:	2300      	movs	r3, #0
+}
+ 8001084:	4618      	mov	r0, r3
+ 8001086:	3710      	adds	r7, #16
+ 8001088:	46bd      	mov	sp, r7
+ 800108a:	bd80      	pop	{r7, pc}
+
+0800108c <BMP280_measure>:
+
+
 
 
 void BMP280_measure (BMP280_TypeDef * const me)
 {
- 8001090:	b580      	push	{r7, lr}
- 8001092:	b082      	sub	sp, #8
- 8001094:	af00      	add	r7, sp, #0
- 8001096:	6078      	str	r0, [r7, #4]
+ 800108c:	b580      	push	{r7, lr}
+ 800108e:	b082      	sub	sp, #8
+ 8001090:	af00      	add	r7, sp, #0
+ 8001092:	6078      	str	r0, [r7, #4]
 	if (_BMP280_readRaw(me) == 0)
- 8001098:	6878      	ldr	r0, [r7, #4]
- 800109a:	f7ff fe20 	bl	8000cde <_BMP280_readRaw>
- 800109e:	4603      	mov	r3, r0
- 80010a0:	2b00      	cmp	r3, #0
- 80010a2:	d139      	bne.n	8001118 <BMP280_measure+0x88>
+ 8001094:	6878      	ldr	r0, [r7, #4]
+ 8001096:	f7ff fe22 	bl	8000cde <_BMP280_readRaw>
+ 800109a:	4603      	mov	r3, r0
+ 800109c:	2b00      	cmp	r3, #0
+ 800109e:	d139      	bne.n	8001114 <BMP280_measure+0x88>
 	{
 		if (me->tRaw == 0x800000) me->temperature = 0; // value in case temp measurement was disabled
- 80010a4:	687b      	ldr	r3, [r7, #4]
- 80010a6:	6adb      	ldr	r3, [r3, #44]	; 0x2c
- 80010a8:	f5b3 0f00 	cmp.w	r3, #8388608	; 0x800000
- 80010ac:	d104      	bne.n	80010b8 <BMP280_measure+0x28>
- 80010ae:	687b      	ldr	r3, [r7, #4]
- 80010b0:	f04f 0200 	mov.w	r2, #0
- 80010b4:	631a      	str	r2, [r3, #48]	; 0x30
- 80010b6:	e017      	b.n	80010e8 <BMP280_measure+0x58>
+ 80010a0:	687b      	ldr	r3, [r7, #4]
+ 80010a2:	6adb      	ldr	r3, [r3, #44]	; 0x2c
+ 80010a4:	f5b3 0f00 	cmp.w	r3, #8388608	; 0x800000
+ 80010a8:	d104      	bne.n	80010b4 <BMP280_measure+0x28>
+ 80010aa:	687b      	ldr	r3, [r7, #4]
+ 80010ac:	f04f 0200 	mov.w	r2, #0
+ 80010b0:	631a      	str	r2, [r3, #48]	; 0x30
+ 80010b2:	e017      	b.n	80010e4 <BMP280_measure+0x58>
 		else
 		{
 			me->temperature = (_BMP280_compensate_T_int32 (me, me->tRaw))/100.0;  // as per datasheet, the temp is x100
- 80010b8:	687b      	ldr	r3, [r7, #4]
- 80010ba:	6adb      	ldr	r3, [r3, #44]	; 0x2c
- 80010bc:	4619      	mov	r1, r3
- 80010be:	6878      	ldr	r0, [r7, #4]
- 80010c0:	f7ff ff0c 	bl	8000edc <_BMP280_compensate_T_int32>
- 80010c4:	4603      	mov	r3, r0
- 80010c6:	4618      	mov	r0, r3
- 80010c8:	f7ff f992 	bl	80003f0 <__aeabi_i2d>
- 80010cc:	f04f 0200 	mov.w	r2, #0
- 80010d0:	4b17      	ldr	r3, [pc, #92]	; (8001130 <BMP280_measure+0xa0>)
- 80010d2:	f7ff fb21 	bl	8000718 <__aeabi_ddiv>
- 80010d6:	4602      	mov	r2, r0
- 80010d8:	460b      	mov	r3, r1
- 80010da:	4610      	mov	r0, r2
- 80010dc:	4619      	mov	r1, r3
- 80010de:	f7ff fc03 	bl	80008e8 <__aeabi_d2f>
- 80010e2:	4602      	mov	r2, r0
- 80010e4:	687b      	ldr	r3, [r7, #4]
- 80010e6:	631a      	str	r2, [r3, #48]	; 0x30
+ 80010b4:	687b      	ldr	r3, [r7, #4]
+ 80010b6:	6adb      	ldr	r3, [r3, #44]	; 0x2c
+ 80010b8:	4619      	mov	r1, r3
+ 80010ba:	6878      	ldr	r0, [r7, #4]
+ 80010bc:	f7ff fe58 	bl	8000d70 <_BMP280_compensate_T_int32>
+ 80010c0:	4603      	mov	r3, r0
+ 80010c2:	4618      	mov	r0, r3
+ 80010c4:	f7ff f994 	bl	80003f0 <__aeabi_i2d>
+ 80010c8:	f04f 0200 	mov.w	r2, #0
+ 80010cc:	4b17      	ldr	r3, [pc, #92]	; (800112c <BMP280_measure+0xa0>)
+ 80010ce:	f7ff fb23 	bl	8000718 <__aeabi_ddiv>
+ 80010d2:	4602      	mov	r2, r0
+ 80010d4:	460b      	mov	r3, r1
+ 80010d6:	4610      	mov	r0, r2
+ 80010d8:	4619      	mov	r1, r3
+ 80010da:	f7ff fc05 	bl	80008e8 <__aeabi_d2f>
+ 80010de:	4602      	mov	r2, r0
+ 80010e0:	687b      	ldr	r3, [r7, #4]
+ 80010e2:	631a      	str	r2, [r3, #48]	; 0x30
 		}
 
 		if (me->pRaw == 0x800000) me->pressure = 0; // value in case temp measurement was disabled
- 80010e8:	687b      	ldr	r3, [r7, #4]
- 80010ea:	6a9b      	ldr	r3, [r3, #40]	; 0x28
- 80010ec:	f5b3 0f00 	cmp.w	r3, #8388608	; 0x800000
- 80010f0:	d104      	bne.n	80010fc <BMP280_measure+0x6c>
- 80010f2:	687b      	ldr	r3, [r7, #4]
- 80010f4:	f04f 0200 	mov.w	r2, #0
- 80010f8:	635a      	str	r2, [r3, #52]	; 0x34
+ 80010e4:	687b      	ldr	r3, [r7, #4]
+ 80010e6:	6a9b      	ldr	r3, [r3, #40]	; 0x28
+ 80010e8:	f5b3 0f00 	cmp.w	r3, #8388608	; 0x800000
+ 80010ec:	d104      	bne.n	80010f8 <BMP280_measure+0x6c>
+ 80010ee:	687b      	ldr	r3, [r7, #4]
+ 80010f0:	f04f 0200 	mov.w	r2, #0
+ 80010f4:	635a      	str	r2, [r3, #52]	; 0x34
 	else
 	{
 		me->temperature = me->pressure = 0;
 	}
 
 }
- 80010fa:	e015      	b.n	8001128 <BMP280_measure+0x98>
+ 80010f6:	e015      	b.n	8001124 <BMP280_measure+0x98>
 			me->pressure = (_BMP280_compensate_P_int32 (me, me->pRaw));  // as per datasheet, the pressure is Pa
- 80010fc:	687b      	ldr	r3, [r7, #4]
- 80010fe:	6a9b      	ldr	r3, [r3, #40]	; 0x28
- 8001100:	4619      	mov	r1, r3
- 8001102:	6878      	ldr	r0, [r7, #4]
- 8001104:	f7ff ff26 	bl	8000f54 <_BMP280_compensate_P_int32>
- 8001108:	4603      	mov	r3, r0
- 800110a:	4618      	mov	r0, r3
- 800110c:	f7ff fcf2 	bl	8000af4 <__aeabi_ui2f>
- 8001110:	4602      	mov	r2, r0
- 8001112:	687b      	ldr	r3, [r7, #4]
- 8001114:	635a      	str	r2, [r3, #52]	; 0x34
+ 80010f8:	687b      	ldr	r3, [r7, #4]
+ 80010fa:	6a9b      	ldr	r3, [r3, #40]	; 0x28
+ 80010fc:	4619      	mov	r1, r3
+ 80010fe:	6878      	ldr	r0, [r7, #4]
+ 8001100:	f7ff fe72 	bl	8000de8 <_BMP280_compensate_P_int32>
+ 8001104:	4603      	mov	r3, r0
+ 8001106:	4618      	mov	r0, r3
+ 8001108:	f7ff fcf4 	bl	8000af4 <__aeabi_ui2f>
+ 800110c:	4602      	mov	r2, r0
+ 800110e:	687b      	ldr	r3, [r7, #4]
+ 8001110:	635a      	str	r2, [r3, #52]	; 0x34
 }
- 8001116:	e007      	b.n	8001128 <BMP280_measure+0x98>
+ 8001112:	e007      	b.n	8001124 <BMP280_measure+0x98>
 		me->temperature = me->pressure = 0;
- 8001118:	687b      	ldr	r3, [r7, #4]
- 800111a:	f04f 0200 	mov.w	r2, #0
- 800111e:	635a      	str	r2, [r3, #52]	; 0x34
+ 8001114:	687b      	ldr	r3, [r7, #4]
+ 8001116:	f04f 0200 	mov.w	r2, #0
+ 800111a:	635a      	str	r2, [r3, #52]	; 0x34
+ 800111c:	687b      	ldr	r3, [r7, #4]
+ 800111e:	6b5a      	ldr	r2, [r3, #52]	; 0x34
  8001120:	687b      	ldr	r3, [r7, #4]
- 8001122:	6b5a      	ldr	r2, [r3, #52]	; 0x34
- 8001124:	687b      	ldr	r3, [r7, #4]
- 8001126:	631a      	str	r2, [r3, #48]	; 0x30
+ 8001122:	631a      	str	r2, [r3, #48]	; 0x30
 }
- 8001128:	bf00      	nop
- 800112a:	3708      	adds	r7, #8
- 800112c:	46bd      	mov	sp, r7
- 800112e:	bd80      	pop	{r7, pc}
- 8001130:	40590000 	.word	0x40590000
+ 8001124:	bf00      	nop
+ 8001126:	3708      	adds	r7, #8
+ 8001128:	46bd      	mov	sp, r7
+ 800112a:	bd80      	pop	{r7, pc}
+ 800112c:	40590000 	.word	0x40590000
 
-08001134 <BMP280_getTemperature_Celc>:
+08001130 <BMP280_getTemperature_Celc>:
 
 
 float BMP280_getTemperature_Celc(BMP280_TypeDef * const me)
 {
- 8001134:	b480      	push	{r7}
- 8001136:	b083      	sub	sp, #12
- 8001138:	af00      	add	r7, sp, #0
- 800113a:	6078      	str	r0, [r7, #4]
+ 8001130:	b480      	push	{r7}
+ 8001132:	b083      	sub	sp, #12
+ 8001134:	af00      	add	r7, sp, #0
+ 8001136:	6078      	str	r0, [r7, #4]
 	return me->temperature;
- 800113c:	687b      	ldr	r3, [r7, #4]
- 800113e:	6b1b      	ldr	r3, [r3, #48]	; 0x30
+ 8001138:	687b      	ldr	r3, [r7, #4]
+ 800113a:	6b1b      	ldr	r3, [r3, #48]	; 0x30
 }
- 8001140:	4618      	mov	r0, r3
- 8001142:	370c      	adds	r7, #12
- 8001144:	46bd      	mov	sp, r7
- 8001146:	bc80      	pop	{r7}
- 8001148:	4770      	bx	lr
+ 800113c:	4618      	mov	r0, r3
+ 800113e:	370c      	adds	r7, #12
+ 8001140:	46bd      	mov	sp, r7
+ 8001142:	bc80      	pop	{r7}
+ 8001144:	4770      	bx	lr
 
-0800114a <BMP280_getPressure_Pa>:
+08001146 <BMP280_getPressure_Pa>:
 
 float BMP280_getPressure_Pa(BMP280_TypeDef * const me)
 {
- 800114a:	b480      	push	{r7}
- 800114c:	b083      	sub	sp, #12
- 800114e:	af00      	add	r7, sp, #0
- 8001150:	6078      	str	r0, [r7, #4]
+ 8001146:	b480      	push	{r7}
+ 8001148:	b083      	sub	sp, #12
+ 800114a:	af00      	add	r7, sp, #0
+ 800114c:	6078      	str	r0, [r7, #4]
 	return me->pressure;
- 8001152:	687b      	ldr	r3, [r7, #4]
- 8001154:	6b5b      	ldr	r3, [r3, #52]	; 0x34
+ 800114e:	687b      	ldr	r3, [r7, #4]
+ 8001150:	6b5b      	ldr	r3, [r3, #52]	; 0x34
 }
- 8001156:	4618      	mov	r0, r3
- 8001158:	370c      	adds	r7, #12
- 800115a:	46bd      	mov	sp, r7
- 800115c:	bc80      	pop	{r7}
- 800115e:	4770      	bx	lr
+ 8001152:	4618      	mov	r0, r3
+ 8001154:	370c      	adds	r7, #12
+ 8001156:	46bd      	mov	sp, r7
+ 8001158:	bc80      	pop	{r7}
+ 800115a:	4770      	bx	lr
 
-08001160 <main>:
+0800115c <main>:
 /**
   * @brief  The application entry point.
   * @retval int
   */
 int main(void)
 {
- 8001160:	b580      	push	{r7, lr}
- 8001162:	b086      	sub	sp, #24
- 8001164:	af04      	add	r7, sp, #16
+ 800115c:	b580      	push	{r7, lr}
+ 800115e:	b084      	sub	sp, #16
+ 8001160:	af02      	add	r7, sp, #8
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
- 8001166:	f000 f981 	bl	800146c <HAL_Init>
+ 8001162:	f000 f983 	bl	800146c <HAL_Init>
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
- 800116a:	f000 f829 	bl	80011c0 <SystemClock_Config>
+ 8001166:	f000 f82b 	bl	80011c0 <SystemClock_Config>
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
- 800116e:	f000 f891 	bl	8001294 <MX_GPIO_Init>
+ 800116a:	f000 f893 	bl	8001294 <MX_GPIO_Init>
   MX_I2C1_Init();
- 8001172:	f000 f861 	bl	8001238 <MX_I2C1_Init>
+ 800116e:	f000 f863 	bl	8001238 <MX_I2C1_Init>
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   BMP280_init(&bmp280_attributes, &hi2c1, BMP280_ADDRESS);
- 8001176:	22ec      	movs	r2, #236	; 0xec
- 8001178:	490f      	ldr	r1, [pc, #60]	; (80011b8 <main+0x58>)
- 800117a:	4810      	ldr	r0, [pc, #64]	; (80011bc <main+0x5c>)
- 800117c:	f7ff fd12 	bl	8000ba4 <BMP280_init>
+ 8001172:	22ec      	movs	r2, #236	; 0xec
+ 8001174:	4910      	ldr	r1, [pc, #64]	; (80011b8 <main+0x5c>)
+ 8001176:	4811      	ldr	r0, [pc, #68]	; (80011bc <main+0x60>)
+ 8001178:	f7ff fd14 	bl	8000ba4 <BMP280_init>
   HAL_Delay(500);
- 8001180:	f44f 70fa 	mov.w	r0, #500	; 0x1f4
- 8001184:	f000 f9d4 	bl	8001530 <HAL_Delay>
-  //BMP280_wakeUp(&bmp280_attributes);
-  BMP280_config(&bmp280_attributes, OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
- 8001188:	2304      	movs	r3, #4
- 800118a:	9302      	str	r3, [sp, #8]
- 800118c:	2300      	movs	r3, #0
- 800118e:	9301      	str	r3, [sp, #4]
- 8001190:	2303      	movs	r3, #3
- 8001192:	9300      	str	r3, [sp, #0]
- 8001194:	2301      	movs	r3, #1
- 8001196:	2205      	movs	r2, #5
- 8001198:	2102      	movs	r1, #2
- 800119a:	4808      	ldr	r0, [pc, #32]	; (80011bc <main+0x5c>)
- 800119c:	f7ff fde8 	bl	8000d70 <BMP280_config>
+ 800117c:	f44f 70fa 	mov.w	r0, #500	; 0x1f4
+ 8001180:	f000 f9d6 	bl	8001530 <HAL_Delay>
+  BMP280_config(&bmp280_attributes, OSRS_16, OSRS_16, MODE_NORMAL, T_SB_0p5, IIR_16);
+ 8001184:	2304      	movs	r3, #4
+ 8001186:	9301      	str	r3, [sp, #4]
+ 8001188:	2300      	movs	r3, #0
+ 800118a:	9300      	str	r3, [sp, #0]
+ 800118c:	2303      	movs	r3, #3
+ 800118e:	2205      	movs	r2, #5
+ 8001190:	2105      	movs	r1, #5
+ 8001192:	480a      	ldr	r0, [pc, #40]	; (80011bc <main+0x60>)
+ 8001194:	f7ff fec6 	bl	8000f24 <BMP280_config>
+
   float temp, press;
   while (1)
   {
     /* USER CODE END WHILE */
-	 // BMP280_getTemperature_Celc(&bmp280_attributes);
 	  BMP280_measure(&bmp280_attributes);
- 80011a0:	4806      	ldr	r0, [pc, #24]	; (80011bc <main+0x5c>)
- 80011a2:	f7ff ff75 	bl	8001090 <BMP280_measure>
-	  //BMP280_getPressure_Pa(&bmp280_attributes);
+ 8001198:	4808      	ldr	r0, [pc, #32]	; (80011bc <main+0x60>)
+ 800119a:	f7ff ff77 	bl	800108c <BMP280_measure>
 
 	  press = BMP280_getPressure_Pa(&bmp280_attributes);
- 80011a6:	4805      	ldr	r0, [pc, #20]	; (80011bc <main+0x5c>)
- 80011a8:	f7ff ffcf 	bl	800114a <BMP280_getPressure_Pa>
- 80011ac:	6078      	str	r0, [r7, #4]
+ 800119e:	4807      	ldr	r0, [pc, #28]	; (80011bc <main+0x60>)
+ 80011a0:	f7ff ffd1 	bl	8001146 <BMP280_getPressure_Pa>
+ 80011a4:	6078      	str	r0, [r7, #4]
 	  temp = BMP280_getTemperature_Celc(&bmp280_attributes);
- 80011ae:	4803      	ldr	r0, [pc, #12]	; (80011bc <main+0x5c>)
- 80011b0:	f7ff ffc0 	bl	8001134 <BMP280_getTemperature_Celc>
- 80011b4:	6038      	str	r0, [r7, #0]
+ 80011a6:	4805      	ldr	r0, [pc, #20]	; (80011bc <main+0x60>)
+ 80011a8:	f7ff ffc2 	bl	8001130 <BMP280_getTemperature_Celc>
+ 80011ac:	6038      	str	r0, [r7, #0]
+
+	  HAL_Delay(500);
+ 80011ae:	f44f 70fa 	mov.w	r0, #500	; 0x1f4
+ 80011b2:	f000 f9bd 	bl	8001530 <HAL_Delay>
 	  BMP280_measure(&bmp280_attributes);
- 80011b6:	e7f3      	b.n	80011a0 <main+0x40>
+ 80011b6:	e7ef      	b.n	8001198 <main+0x3c>
  80011b8:	2000045c 	.word	0x2000045c
  80011bc:	200004b0 	.word	0x200004b0
 
@@ -2511,7 +2513,7 @@ LoopFillZerobss:
  800144a:	f001 ff03 	bl	8003254 <__libc_init_array>
 /* Call the application's entry point.*/
   bl main
- 800144e:	f7ff fe87 	bl	8001160 <main>
+ 800144e:	f7ff fe85 	bl	800115c <main>
   bx lr
  8001452:	4770      	bx	lr
   ldr r0, =_sdata

@@ -45,8 +45,7 @@
 I2C_HandleTypeDef hi2c1;
 BMP280_TypeDef bmp280_attributes;
 
-typedef  int32_t BMP280_S32_t;
-typedef  uint32_t BMP280_U32_t;
+
 
 /* USER CODE BEGIN PV */
 
@@ -103,27 +102,31 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   BMP280_init(&bmp280_attributes, &hi2c1, BMP280_ADDRESS);
   HAL_Delay(500);
-  //BMP280_wakeUp(&bmp280_attributes);
-  BMP280_config(&bmp280_attributes, OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
-//  int status_raw = BMPReadRaw();
+  BMP280_config(&bmp280_attributes, OSRS_16, OSRS_16, MODE_NORMAL, T_SB_0p5, IIR_16);
 
   float temp, press;
   while (1)
   {
     /* USER CODE END WHILE */
-	 // BMP280_getTemperature_Celc(&bmp280_attributes);
 	  BMP280_measure(&bmp280_attributes);
-	  //BMP280_getPressure_Pa(&bmp280_attributes);
 
 	  press = BMP280_getPressure_Pa(&bmp280_attributes);
 	  temp = BMP280_getTemperature_Celc(&bmp280_attributes);
 
-	 // HAL_Delay(500);
+	  HAL_Delay(500);
 
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
+
+
+
+
+
+
+
+
 
 
 
